@@ -1,7 +1,7 @@
 # EB Metrics
 
-![License: BSD-3](https://img.shields.io/badge/License-BSD--3-Clause-blue.svg)
-![Python Versions](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12%20|%203.13-blue)
+![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)
+![Python Versions](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![Project Status](https://img.shields.io/badge/Status-Alpha-yellow)
 
 **Error metrics and evaluation utilities for the Electric Barometer ecosystem**
@@ -267,6 +267,7 @@ All public functions are listed in __all__ for clean autocompletion and stable A
 The repository follows a clean, modern Python package layout designed for
 readability, testability, and long-term maintainability.
 
+```bash
 eb-metrics/
 │
 ├── src/ebmetrics/
@@ -287,6 +288,7 @@ eb-metrics/
 ├── pyproject.toml # Build config, dependencies, metadata
 ├── README.md # Project documentation
 └── LICENSE # BSD-3-Clause license
+```
 
 This layout follows Python packaging best practices:
 
