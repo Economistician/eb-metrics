@@ -1,0 +1,69 @@
+"""
+ebmetrics.metrics: Common error metrics for forecasting, analytics, and the
+Electric Barometer framework.
+
+This module exposes the public API for users, re-exporting metrics
+from the submodules in a clean, stable namespace.
+
+Public API includes:
+- Cost-weighted loss metrics (CWSL, etc.)
+- Classical regression metrics (MAE, MSE, RMSE, MAPE, etc.)
+- Service-level and readiness metrics (NSL, UD, HR@τ, FRS)
+"""
+
+# ----------------------------------------------------------------------
+# Loss metrics
+# ----------------------------------------------------------------------
+from .loss import cwsl
+
+# ----------------------------------------------------------------------
+# Classical regression metrics
+# ----------------------------------------------------------------------
+from .regression import (
+    mae,
+    mse,
+    rmse,
+    mape,
+    wmape,
+    msle,
+    rmsle,
+    medae,
+    smape,
+    mase,
+)
+
+# ----------------------------------------------------------------------
+# Service-level metrics
+# ----------------------------------------------------------------------
+from .service import (
+    nsl,
+    ud,
+    hr_at_tau,
+    frs,
+)
+
+# ----------------------------------------------------------------------
+# Public API
+# ----------------------------------------------------------------------
+__all__ = [
+    # Loss
+    "cwsl",
+
+    # Regression
+    "mae",
+    "mse",
+    "rmse",
+    "mape",
+    "wmape",
+    "msle",
+    "rmsle",
+    "medae",
+    "smape",
+    "mase",
+
+    # Service-level
+    "nsl",
+    "ud",
+    "hr_at_tau",
+    "frs",
+]
