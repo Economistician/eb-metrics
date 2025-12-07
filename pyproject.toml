@@ -1,15 +1,17 @@
 [project]
 name = "ebmetrics"
 version = "0.1.0"
-description = "Error metrics and evaluation utilities for the Electric Barometer ecosystem, including asymmetric and standard loss functions."
+description = "Core Electric Barometer error metrics, including asymmetric CWSL and standard forecast loss functions."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "BSD-3-Clause" }
+
 authors = [
   { name = "Kyle Corrie (Economistician)", email = "kcorrie@economistician.com" }
 ]
+
+# Keep this minimal — ebmetrics should be pure mathematical metrics.
 dependencies = [
-  "pandas>=2.0",
   "numpy>=1.24",
 ]
 
@@ -28,6 +30,10 @@ dev = [
 [build-system]
 requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
+
+# Tell setuptools to use the src/ layout
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
