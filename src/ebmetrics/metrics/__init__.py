@@ -9,6 +9,7 @@ Public API includes:
 - Cost-weighted loss metrics (CWSL, etc.)
 - Classical regression metrics (MAE, MSE, RMSE, MAPE, etc.)
 - Service-level and readiness metrics (NSL, UD, HR@τ, FRS)
+- Cost-sensitivity utilities for CWSL
 """
 
 # ----------------------------------------------------------------------
@@ -33,13 +34,14 @@ from .regression import (
 )
 
 # ----------------------------------------------------------------------
-# Service-level metrics
+# Service-level + cost-sensitivity metrics
 # ----------------------------------------------------------------------
 from .service import (
     nsl,
     ud,
     hr_at_tau,
     frs,
+    cwsl_sensitivity,
 )
 
 # ----------------------------------------------------------------------
@@ -61,9 +63,10 @@ __all__ = [
     "smape",
     "mase",
 
-    # Service-level
+    # Service-level + cost-sensitivity
     "nsl",
     "ud",
     "hr_at_tau",
     "frs",
+    "cwsl_sensitivity",
 ]

@@ -6,7 +6,9 @@ from ebmetrics.metrics.service import (
     ud,
     hr_at_tau,
     frs,
+    cwsl_sensitivity,
 )
+from ebmetrics.metrics.loss import cwsl
 
 
 # ----------------------------------------------------------------------
@@ -218,3 +220,60 @@ def test_frs_basic_consistency():
 
     value = frs(y_true=y_true, y_pred=y_pred, cu=cu, co=co)
     assert np.isclose(value, 1.0 / 6.0)
+
+
+# ----------------------------------------------------------------------
+# CWSL Sensitivity (cwsl_sensitivity)
+# ----------------------------------------------------------------------
+def test_cwsl_sensitivity_matches_direct_cwsl():
+    """
+    For a simple panel, cwsl_sensitivity should match direct cwsl calls
+    for each R in R_list when cu = R * co.
+    """
+    y_true = np.array([10.0, 20.0, 15.0])
+    y_pred = np.array([9.0, 18.0, 17.0])
+    co = 1.5
+    R_list = [0.5, 1.0, 2.0]
+
+    sens = cwsl_sensitivity(
+        y_true=y_true,
+        y_pred=y_pred,
+        R_list=R_list,
+        co=co,
+        sample_weight=None,
+    )
+
+    # Check keys and direct equality with cwsl
+    assert set(sens.keys()) == {0.5, 1.0, 2.0}
+
+    for R in R_list:
+        cu = R * co
+        direct = cwsl(y_true=y_true, y_pred=y_pred, cu=cu, co=co)
+        assert np.isclose(sens[R], direct)
+
+
+def test_cwsl_sensitivity_with_non_positive_Rs_ignored_and_error_if_all_invalid():
+    """
+    Non-positive R values should be ignored. If all R in R_list are
+    non-positive, a ValueError should be raised.
+    """
+    y_true = [10.0, 20.0]
+    y_pred = [9.0, 21.0]
+
+    # Mixed list: only positive ones should be used
+    sens = cwsl_sensitivity(
+        y_true=y_true,
+        y_pred=y_pred,
+        R_list=[-1.0, 0.0, 1.0, 2.0],
+        co=1.0,
+    )
+    assert set(sens.keys()) == {1.0, 2.0}
+
+    # All invalid → ValueError
+    with pytest.raises(ValueError):
+        cwsl_sensitivity(
+            y_true=y_true,
+            y_pred=y_pred,
+            R_list=[-1.0, 0.0],
+            co=1.0,
+        )

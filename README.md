@@ -173,12 +173,12 @@ wmape(y_true, y_pred)
 Metrics specifically designed for operational readiness, service consistency, and
 forecast quality in high-frequency environments.
 
-| Metric          | Description                                                     |
-| --------------- | --------------------------------------------------------------- |
-| **`nsl`**       | *No Shortfall Level.* Fraction of intervals with no underbuild. |
-| **`ud`**        | *Underbuild Depth.* Average shortfall amount.                   |
-| **`hr_at_tau`** | Hit Rate within a tolerance `τ`.                                |
-| **`frs`**       | *Forecast Readiness Score.* Combines NSL and CWSL.              |
+| Metric      | Description                                                     |
+| ----------- | --------------------------------------------------------------- |
+| `nsl`       | *No Shortfall Level.* Fraction of intervals with no underbuild. |
+| `ud`        | *Underbuild Depth.* Average shortfall amount.                   |
+| `hr_at_tau` | Hit Rate within a tolerance `τ`.                                |
+| `frs`       | *Forecast Readiness Score.* Combines NSL and CWSL.              |
 
 **Example**:
 
@@ -187,6 +187,15 @@ from ebmetrics.metrics import nsl, frs
 nsl(y_true, y_pred)
 frs(y_true, y_pred, cu=2.0, co=1.0)
 ```
+
+### **4. Cost Sensitivity Utilities for CWSL**
+
+Utilities for probing how sensitive model performance is to different
+assumptions about the shortfall vs. overbuild cost ratio R=cu/co.
+
+| Metric             | Description                                                     |
+| ------------------ | --------------------------------------------------------------- |
+| `cwsl_sensitivity` | Evaluate CWSL over a set of candidate cost ratios 𝑅, holding `co` fixed and using `cu = R * co`. |
 
 Each metric has been:
 
@@ -248,6 +257,17 @@ from ebmetrics.metrics import nsl, ud, hr_at_tau, frs
 | **`hr_at_tau`** | Hit rate within a tolerance τ.                                |
 | **`frs`**       | Forecast Readiness Score — combines NSL and CWSL.             |
 
+### **Cost Sensitivity Utilities**
+
+```python
+from ebmetrics.metrics import cwsl_sensitivity
+```
+
+| Function           | Description                                                                  |
+| ------------------ | ---------------------------------------------------------------------------- |
+| `cwsl_sensitivity` | Evaluate CWSL over a grid of cost rations R=cu/co for robustness and tuning. |
+
+
 ### **Importing from Submodules**
 
 All metrics can also be imported from their respective submodules:
@@ -255,7 +275,7 @@ All metrics can also be imported from their respective submodules:
 ```python
 from ebmetrics.metrics.loss import cwsl
 from ebmetrics.metrics.regression import rmse, wmape
-from ebmetrics.metrics.service import nsl, frs
+from ebmetrics.metrics.service import nsl, frs, cwsl_sensitivity
 ```
 
 All public functions are listed in __all__ for clean autocompletion and stable API expectations.
