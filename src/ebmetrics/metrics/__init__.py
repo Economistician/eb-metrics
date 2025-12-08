@@ -16,6 +16,7 @@ Public API includes:
 # Loss metrics
 # ----------------------------------------------------------------------
 from .loss import cwsl
+from .cost_ratio import estimate_R_cost_balance
 
 # ----------------------------------------------------------------------
 # Classical regression metrics
@@ -48,8 +49,9 @@ from .service import (
 # Public API
 # ----------------------------------------------------------------------
 __all__ = [
-    # Loss
+    # Loss & cost-ratio
     "cwsl",
+    "estimate_R_cost_balance",
 
     # Regression
     "mae",

@@ -188,7 +188,55 @@ nsl(y_true, y_pred)
 frs(y_true, y_pred, cu=2.0, co=1.0)
 ```
 
-### **4. Cost Sensitivity Utilities for CWSL**
+### **4. Cost Ratio Estimation (Choosing R = cu/co)
+
+`eb-metrics` includes a data-driven helper for estimating the **optimal cost ratio**
+
+\[R = \frac{c_u}{c_o}\]
+
+based on historical forecast performance.  
+This allows users to ground asymmetric cost assumptions in empirical behavior rather than arbitrary choices.
+
+#### **Why estimate R?**
+
+- Many operational domains (QSR, retail, logistics) do not know their exact shortfall-vs-overbuild cost asymmetry.
+- Forecast error patterns often reveal an implicit operating preference.
+- The estimator finds the value of \(R\) where:
+
+\[\text{total underbuild cost} \approx \text{total overbuild cost}\]
+
+producing a stable, interpretable baseline cost ratio.
+
+#### **Global Cost-Ratio Estimation**
+
+```python
+from ebmetrics.metrics import estimate_R_cost_balance
+
+R_hat = estimate_R_cost_balance(
+    y_true,
+    y_pred,
+    R_grid=[0.5, 1.0, 2.0, 3.0],
+    co=1.0,
+)
+```
+
+`R_hat` is the value of R that minimizes: The Sum of shortfall less the sum of overbuild
+
+You can use `R_hat` directly, or as the center of a sensitivity sweep:
+
+```python
+[R_hat / 2, R_hat, R_hat * 2]
+```
+
+**Interpretation**
+
+- If the forecast historically underpredicts, the optimizer tends to push 𝑅↑.
+- If it overpredicts, the optimizer tends to push 𝑅↓.
+- If errors are balanced, 𝑅≈1.
+
+This provides a principled starting point for CWSL-based optimization, model selection, and operational tuning.
+
+### **5. Cost Sensitivity Utilities for CWSL**
 
 Utilities for probing how sensitive model performance is to different
 assumptions about the shortfall vs. overbuild cost ratio R=cu/co.
