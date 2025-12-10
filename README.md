@@ -252,7 +252,7 @@ Each metric has been:
 - implemented with consistent input checking
 - optimized for numpy vector operations
 
-### **6. Framework Integrations (TensorFlow / Keras)** 
+### **6. Framework Integrations (TensorFlow / Keras / scikit-learn)** 
 
 `eb-metrics` includes an optional integration for deep learning workflows: a **Keras-compatible CWSL loss function**.
 
@@ -280,6 +280,36 @@ This enables:
 - Cost-aware neural forecasting  
 - Asymmetric training objectives  
 - Deep learning compatibility with Electric Barometer metrics  
+
+#### **scikit-learn CWSL Scorer**
+
+For tree-based models and other sklearn estimators, `eb-metrics` provides a **CWSL-based scorer** that plugs directly into hyperparameter search utilities like `GridSearchCV` and `RandomizedSearchCV`.
+
+```python
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import GridSearchCV
+from ebmetrics.frameworks import cwsl_scorer
+
+scorer = cwsl_scorer(cu=2.0, co=1.0)
+
+model = RandomForestRegressor(random_state=0)
+
+grid = GridSearchCV(
+    estimator=model,
+    param_grid={"n_estimators": [50, 100, 200]},
+    scoring=scorer,  # maximizes negative CWSL
+)
+
+grid.fit(X_train, y_train)
+best_model = grid.best_estimator_
+```
+
+Key properties:
+
+- Uses **CWSL as the underlying loss**, but exposed as a sklearn scorer (higher is better)
+- Fully compatible with `sample_weight`
+- Works with any regressor that follows the standard sklearn API
+- Lets you tune models directly on **operational cost** instead of symmetric error
 
 ---
 
