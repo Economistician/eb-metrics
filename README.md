@@ -252,6 +252,35 @@ Each metric has been:
 - implemented with consistent input checking
 - optimized for numpy vector operations
 
+### **6. Framework Integrations (TensorFlow / Keras)** 
+
+`eb-metrics` includes an optional integration for deep learning workflows: a **Keras-compatible CWSL loss function**.
+
+#### **Keras / TensorFlow CWSL Loss**
+
+This utility creates a **per-sample asymmetric loss**, allowing neural networks to train directly using operational cost weights.
+
+```python
+from ebmetrics.frameworks import make_cwsl_keras_loss
+
+loss_fn = make_cwsl_keras_loss(cu=2.0, co=1.0)
+
+model.compile(optimizer="adam", loss=loss_fn)
+```
+
+#### **Features**
+- Fully differentiable and TensorFlow-native  
+- Computes shortfall and overbuild costs per sample  
+- Normalizes cost by demand (matching the CWSL metric definition)  
+- Supports arbitrary forecast horizons (reduces over time axis)  
+- TensorFlow is imported lazily and **not** required unless used 
+
+#### **Why this matters**
+This enables:
+- Cost-aware neural forecasting  
+- Asymmetric training objectives  
+- Deep learning compatibility with Electric Barometer metrics  
+
 ---
 
 ## API Summary
