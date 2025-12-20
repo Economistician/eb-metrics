@@ -132,16 +132,21 @@ Contributions should preserve alignment with definitions in `eb-papers`.
 
 ---
 
-## Relationship to `eb-papers`
+## Relationship to Other EB Repositories
 
-This repository implements metrics defined in the Electric Barometer research
-papers.
+- `eb-papers`  
+  Source of truth for conceptual definitions and evaluation philosophy.
 
-- **Conceptual definitions and motivation:** `eb-papers`
-- **Executable reference implementation:** `eb-metrics`
+- `eb-metrics`  
+  Provides the metric implementations used during evaluation.
 
-When discrepancies arise, `eb-papers` should be treated as the source of truth
-for metric meaning.
+- `eb-evaluation`  
+  Orchestrates evaluation workflows using adapted models.
+
+- `eb-adapters`  
+  Ensures heterogeneous models can be evaluated consistently.
+
+When discrepancies arise, conceptual intent in `eb-papers` should be treated as authoritative.
 
 ---
 
