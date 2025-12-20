@@ -1,8 +1,16 @@
 """
-Loss-like metrics with explicit cost asymmetry (e.g., CWSL).
+Asymmetric loss metrics for the Electric Barometer ecosystem.
 
-These metrics are designed to encode business-relevant costs for
-under- and over-forecasting rather than treating all errors symmetrically.
+This module contains loss-like metrics that explicitly encode operational
+asymmetry between *underbuild* (shortfall; forecasting below realized demand)
+and *overbuild* (excess; forecasting above realized demand).
+
+The primary metric implemented here is **Cost-Weighted Service Loss (CWSL)**,
+a demand-normalized loss that generalizes weighted MAPE by assigning distinct
+per-unit costs to shortfall and overbuild.
+
+Conceptual definitions, motivation, and interpretation are documented in the
+companion research repository (`eb-papers`).
 """
 
 __all__ = ["cwsl"]
@@ -27,80 +35,77 @@ def cwsl(
     sample_weight: ArrayLike | None = None,
 ) -> float:
     """
-    Cost-Weighted Service Loss (CWSL).
+    Compute Cost-Weighted Service Loss (CWSL).
 
-    CWSL is a demand-normalized, directionally-aware forecast error metric that
-    applies asymmetric penalties to shortfalls and overbuilds. It answers:
+    CWSL is a demand-normalized, directionally-aware loss that penalizes
+    **shortfalls** and **overbuilds** using explicit per-unit costs.
 
-        "What fraction of total demand was effectively lost due to the
-        cost-weighted impact of forecast error?"
+    For each interval :math:`i`:
 
-    Formal definition
-    -----------------
-    For each observation (interval, item, etc.) i:
+    .. math::
 
-        y_i    : actual demand
-        ŷ_i    : forecast
-        s_i    : shortfall  = max(0, y_i - ŷ_i)
-        o_i    : overbuild  = max(0, ŷ_i - y_i)
+        s_i &= \\max(0, y_i - \\hat{y}_i) \\\\
+        o_i &= \\max(0, \\hat{y}_i - y_i) \\\\
+        \\text{cost}_i &= c_{u,i} \\; s_i + c_{o,i} \\; o_i
 
-    with penalties:
+    and the aggregated metric is:
 
-        cu_i   : cost weight for shortfall
-        co_i   : cost weight for overbuild
+    .. math::
 
-    The cost-weighted loss is:
+        \\mathrm{CWSL} = \\frac{\\sum_i w_i \\; \\text{cost}_i}{\\sum_i w_i \\; y_i}
 
-        cost_i = cu_i * s_i + co_i * o_i
-
-    and the Cost-Weighted Service Loss is:
-
-        CWSL =  sum_i( cost_i * w_i ) / sum_i( y_i * w_i )
-
-    where w_i are optional sample weights (default w_i = 1).
+    where :math:`w_i` are optional sample weights (default :math:`w_i = 1`).
+    Lower values indicate better performance.
 
     Parameters
     ----------
     y_true : array-like of shape (n_samples,)
-        Actual demand. Must be non-negative.
+        Realized demand :math:`y`. Must be non-negative.
 
     y_pred : array-like of shape (n_samples,)
-        Forecasted demand. Must be non-negative.
+        Forecast demand :math:`\\hat{y}`. Must be non-negative and have the same
+        shape as ``y_true``.
 
     cu : float or array-like of shape (n_samples,)
-        Shortfall (underbuild) cost per unit. Must be strictly positive.
-        A scalar applies globally; a 1D array allows per-observation penalties.
+        Per-unit shortfall cost :math:`c_u`. Can be a scalar (global cost) or a
+        1D array specifying per-interval costs. Must be non-negative.
 
     co : float or array-like of shape (n_samples,)
-        Overbuild (excess) cost per unit. Must be strictly positive.
-        A scalar applies globally; a 1D array allows per-observation penalties.
+        Per-unit overbuild cost :math:`c_o`. Can be a scalar (global cost) or a
+        1D array specifying per-interval costs. Must be non-negative.
 
     sample_weight : float or array-like of shape (n_samples,), optional
-        Optional non-negative weights per interval. If provided, both the
-        numerator (cost) and denominator (demand) are weighted. If the
-        total weighted demand is zero while total weighted cost is > 0,
-        a ValueError is raised (CWSL undefined in that case).
+        Optional non-negative weights per interval. If ``None``, all intervals
+        receive weight ``1.0``.
 
     Returns
     -------
     float
-        Cost-weighted service loss, demand-normalized. Values are >= 0, with
-        higher values indicating more cost-weighted error relative to total
-        demand.
+        The CWSL value. Lower is better.
 
     Raises
     ------
     ValueError
-        If inputs are invalid or CWSL is undefined given the data.
+        If ``y_true`` and ``y_pred`` have different shapes, if any demand or
+        forecast values are negative, if any costs are negative, or if the
+        metric is undefined due to zero total (weighted) demand with positive
+        total (weighted) cost.
 
     Notes
     -----
-    - If cu == co, CWSL behaves like a demand-normalized symmetric error metric.
-    - If cu > co, shortfalls are penalized more heavily than overbuilds.
-    - Designed for short-horizon, high-frequency operational forecasting
-      where being "short" is worse than being "long".
+    - When ``cu == co`` (up to a constant scaling), CWSL behaves similarly to a
+      demand-normalized absolute error (wMAPE-like), but retains explicit cost
+      semantics.
+    - If total (weighted) demand is zero and total (weighted) cost is zero,
+      this implementation returns ``0.0``.
+    - If total (weighted) demand is zero but total (weighted) cost is positive,
+      the metric is undefined under this formulation and a ``ValueError`` is
+      raised.
+
+    References
+    ----------
+    Electric Barometer Technical Note: Cost-Weighted Service Loss (CWSL).
     """
-    # Convert y_true and y_pred to validated 1D arrays
     y_true_arr = _to_1d_array(y_true, "y_true")
     y_pred_arr = _to_1d_array(y_pred, "y_pred")
 
@@ -118,27 +123,25 @@ def cwsl(
     n = y_true_arr.shape[0]
 
     # Broadcast cu and co (allow scalar or 1D array of length n)
-    cu_arr = _broadcast_param(cu, n, "cu")
-    co_arr = _broadcast_param(co, n, "co")
+    cu_arr = _broadcast_param(cu, (n,), "cu")
+    co_arr = _broadcast_param(co, (n,), "co")
 
-    if np.any(cu_arr <= 0):
-        raise ValueError("cu (shortfall cost) must be strictly positive.")
-    if np.any(co_arr <= 0):
-        raise ValueError("co (overbuild cost) must be strictly positive.")
+    if np.any(cu_arr < 0):
+        raise ValueError("cu must be non-negative.")
+    if np.any(co_arr < 0):
+        raise ValueError("co must be non-negative.")
 
-    # Handle sample_weight
-    w = _handle_sample_weight(sample_weight, n)
+    # Sample weights
+    w = _handle_sample_weight(sample_weight, n, dtype=float)
 
-    # Compute shortfall and overbuild per interval
+    # Shortfall and overbuild components
     shortfall = np.maximum(0.0, y_true_arr - y_pred_arr)
     overbuild = np.maximum(0.0, y_pred_arr - y_true_arr)
 
-    # Interval cost
+    # Weighted cost and weighted demand
     cost = cu_arr * shortfall + co_arr * overbuild
-
-    # Apply weights
-    weighted_cost = w * cost
-    weighted_demand = w * y_true_arr
+    weighted_cost = cost * w
+    weighted_demand = y_true_arr * w
 
     total_cost = float(weighted_cost.sum())
     total_demand = float(weighted_demand.sum())

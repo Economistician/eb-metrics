@@ -1,50 +1,80 @@
-# src/ebmetrics/frameworks/sklearn_scorer.py
+"""
+scikit-learn integration for Electric Barometer metrics.
+
+This module provides scikit-learn-compatible scoring utilities built on top of
+Electric Barometer metrics. The primary entry point is :func:`cwsl_scorer`,
+which produces a scorer suitable for use with ``GridSearchCV``,
+``RandomizedSearchCV``, ``cross_val_score``, and related tooling.
+
+Notes
+-----
+- Electric Barometer's Cost-Weighted Service Loss (CWSL) is a *loss*
+  (lower is better). scikit-learn model selection APIs expect a *score*
+  (higher is better). The scorer produced here returns **negative CWSL**
+  so it can be maximized.
+- Conceptual definitions of CWSL and its cost parameters are documented in
+  the companion research repository (`eb-papers`).
+"""
+
 from __future__ import annotations
 
 from typing import Callable
 
 import numpy as np
+from numpy.typing import ArrayLike
 
 from ebmetrics.metrics import cwsl
 
+__all__ = ["cwsl_loss", "cwsl_scorer"]
+
 
 def cwsl_loss(
-    y_true,
-    y_pred,
+    y_true: ArrayLike,
+    y_pred: ArrayLike,
     *,
     cu: float,
     co: float,
-    sample_weight=None,
+    sample_weight: ArrayLike | None = None,
 ) -> float:
     """
-    Raw CWSL loss function, suitable for use with sklearn-style scorers.
+    Compute the (positive) Cost-Weighted Service Loss (CWSL) for scikit-learn usage.
 
-    This returns a *positive* cost (loss). When wrapped with
-    sklearn.metrics.make_scorer(greater_is_better=False), the resulting
-    scorer will return the *negative* CWSL so that higher scores are
-    better, per scikit-learn conventions.
+    This helper is a thin wrapper around :func:`ebmetrics.metrics.cwsl` that:
+    - enforces strict positivity of ``cu`` and ``co`` (to align with typical
+      scikit-learn scorer usage), and
+    - converts inputs to ``numpy.ndarray`` prior to evaluation.
 
     Parameters
     ----------
-    y_true : array-like
-        Ground-truth targets.
+    y_true : array-like of shape (n_samples,)
+        Realized demand values.
 
-    y_pred : array-like
-        Predicted values from the model.
+    y_pred : array-like of shape (n_samples,)
+        Forecast values.
 
     cu : float
-        Underbuild (shortfall) cost per unit. Must be strictly positive.
+        Per-unit cost of underbuild (shortfall). Must be strictly positive.
 
     co : float
-        Overbuild (excess) cost per unit. Must be strictly positive.
+        Per-unit cost of overbuild (excess). Must be strictly positive.
 
-    sample_weight : array-like, optional
-        Optional per-sample weights.
+    sample_weight : array-like of shape (n_samples,), optional
+        Optional per-sample weights passed through to CWSL.
 
     Returns
     -------
     float
         Positive CWSL value (lower is better).
+
+    Raises
+    ------
+    ValueError
+        If ``cu`` or ``co`` are not strictly positive, or if the underlying CWSL
+        computation is undefined for the given inputs.
+
+    References
+    ----------
+    Electric Barometer Technical Note: Cost-Weighted Service Loss (CWSL).
     """
     if cu <= 0.0:
         raise ValueError("cu must be strictly positive.")
@@ -62,51 +92,47 @@ def cwsl_loss(
 
 def cwsl_scorer(cu: float, co: float) -> Callable:
     """
-    Build a scikit-learn-compatible scorer based on Cost-Weighted Service Loss (CWSL).
+    Build a scikit-learn scorer based on Cost-Weighted Service Loss (CWSL).
 
-    The returned object can be passed anywhere scikit-learn expects a ``scorer``,
-    such as GridSearchCV, RandomizedSearchCV, or cross_val_score.
+    The returned object can be used wherever scikit-learn expects a scorer, for
+    example:
 
-    Notes
-    -----
-    - The underlying CWSL is a *loss* (lower is better).
-    - The scorer returned by this function obeys scikit-learn conventions:
-        * it returns the *negative* CWSL (so higher is better),
-        * it can be used directly as ``scoring=...`` in model selection tools.
+    - ``GridSearchCV(..., scoring=cwsl_scorer(cu=2.0, co=1.0))``
+    - ``cross_val_score(..., scoring=cwsl_scorer(cu=2.0, co=1.0))``
 
     Parameters
     ----------
     cu : float
-        Underbuild (shortfall) cost per unit. Must be strictly positive.
+        Per-unit cost of underbuild (shortfall). Must be strictly positive.
 
     co : float
-        Overbuild (excess) cost per unit. Must be strictly positive.
+        Per-unit cost of overbuild (excess). Must be strictly positive.
 
     Returns
     -------
     Callable
-        A scikit-learn scorer object (as returned by ``sklearn.metrics.make_scorer``).
+        A scikit-learn scorer that returns **negative CWSL** (higher is better).
 
-    Raises
-    ------
-    ImportError
-        If scikit-learn is not installed.
+    Notes
+    -----
+    scikit-learn assumes scores are maximized. Because CWSL is a loss, the scorer
+    returned by this function is configured with ``greater_is_better=False`` so
+    scikit-learn negates the value internally.
+
+    References
+    ----------
+    Electric Barometer Technical Note: Cost-Weighted Service Loss (CWSL).
     """
     if cu <= 0.0:
         raise ValueError("cu must be strictly positive.")
     if co <= 0.0:
         raise ValueError("co must be strictly positive.")
 
-    try:
-        from sklearn.metrics import make_scorer
-    except ImportError as e:  # pragma: no cover - optional dependency path
-        raise ImportError(
-            "cwsl_scorer requires scikit-learn to be installed. "
-            "Install it with `pip install scikit-learn`."
-        ) from e
+    from sklearn.metrics import make_scorer
 
-    def _loss(y_true, y_pred, sample_weight=None, **kwargs):
-        # Accept **kwargs so sklearn can pass needs_proba / needs_threshold, etc.
+    def _loss(
+        y_true: ArrayLike, y_pred: ArrayLike, sample_weight: ArrayLike | None = None
+    ) -> float:
         return cwsl_loss(
             y_true=y_true,
             y_pred=y_pred,
@@ -115,7 +141,7 @@ def cwsl_scorer(cu: float, co: float) -> Callable:
             sample_weight=sample_weight,
         )
 
-    # greater_is_better=False → sklearn negates the loss internally,
+    # greater_is_better=False -> sklearn negates the loss internally,
     # so the scorer returns -CWSL and can be maximized.
     return make_scorer(
         _loss,

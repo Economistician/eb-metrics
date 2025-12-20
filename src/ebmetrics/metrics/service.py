@@ -1,13 +1,17 @@
 """
-Service-level and readiness metrics built around shortfalls, tolerances,
-and cost-weighted loss.
+Service-level and readiness metrics for the Electric Barometer ecosystem.
 
-These metrics are designed to complement CWSL by capturing:
-- How often we avoid shortfalls (NSL),
-- How deep the shortfalls are (UD),
-- How often forecasts stay within a tolerance band (HR@tau),
-- A composite readiness score (FRS),
-- Sensitivity of CWSL to different cost ratios R = cu / co.
+This module contains evaluation metrics that complement asymmetric loss (e.g.,
+CWSL) by measuring **service behavior** and **readiness characteristics**:
+
+- **NSL**: how often forecasts avoid shortfall (service reliability)
+- **UD**: how deep shortfalls are when they occur (service severity)
+- **HR@τ**: how often forecasts fall within a tolerance band (accuracy within bounds)
+- **FRS**: a composite readiness score built from NSL and CWSL
+- **CWSL sensitivity**: how CWSL changes under alternative cost-ratio assumptions
+
+Operational definitions, interpretation, and motivation are documented in the
+companion research repository (`eb-papers`).
 """
 
 from typing import Dict, Sequence, Union
@@ -22,7 +26,6 @@ from .._utils import (
 )
 from .loss import cwsl
 
-
 __all__ = ["nsl", "ud", "hr_at_tau", "frs", "cwsl_sensitivity"]
 
 
@@ -32,35 +35,60 @@ def nsl(
     sample_weight: ArrayLike | None = None,
 ) -> float:
     """
-    No-Shortfall Level (NSL).
+    Compute No-Shortfall Level (NSL).
 
-    NSL is the proportion of intervals with no shortfall, optionally weighted.
+    NSL is the (optionally weighted) fraction of evaluation intervals in which
+    the forecast does **not** underpredict realized demand.
 
-    A "hit" is defined as y_pred >= y_true for that interval.
-    With weights, NSL is the weighted fraction of hits.
+    For each interval :math:`i`, define a hit indicator:
+
+    .. math::
+
+        h_i = \\mathbb{1}[\\hat{y}_i \\ge y_i]
+
+    Then:
+
+    .. math::
+
+        \\mathrm{NSL} = \\frac{\\sum_i w_i \\; h_i}{\\sum_i w_i}
+
+    where :math:`w_i` are optional sample weights (default :math:`w_i = 1`).
+    Higher values are better, with :math:`\\mathrm{NSL} \\in [0, 1]`.
 
     Parameters
     ----------
     y_true : array-like of shape (n_samples,)
-        Actual demand. Must be non-negative.
+        Realized demand. Must be non-negative.
 
     y_pred : array-like of shape (n_samples,)
-        Forecasted demand. Must be non-negative.
+        Forecast demand. Must be non-negative and have the same shape as
+        ``y_true``.
 
     sample_weight : float or array-like of shape (n_samples,), optional
-        Optional non-negative weights per interval. If provided, the NSL is
-        computed as sum(w_i * hit_i) / sum(w_i). If the total weight is zero,
-        a ValueError is raised.
+        Optional non-negative weights per interval. If provided, NSL is computed
+        as a weighted fraction. If total weight is zero, NSL is undefined and a
+        ``ValueError`` is raised.
 
     Returns
     -------
     float
-        No-Shortfall Level in [0, 1].
+        NSL value in [0, 1]. Higher indicates better shortfall avoidance.
 
     Raises
     ------
     ValueError
-        If inputs are invalid or the total weight is zero.
+        If inputs are invalid (shape mismatch, negative values), or if total
+        sample weight is zero.
+
+    Notes
+    -----
+    - NSL is a *service reliability* measure: it does not quantify how large a
+      shortfall is—only whether a shortfall occurred.
+    - UD complements NSL by measuring shortfall magnitude when shortfalls occur.
+
+    References
+    ----------
+    Electric Barometer Technical Note: No Shortfall Level (NSL).
     """
     y_true_arr = _to_1d_array(y_true, "y_true")
     y_pred_arr = _to_1d_array(y_pred, "y_pred")
@@ -100,41 +128,61 @@ def ud(
     sample_weight: ArrayLike | None = None,
 ) -> float:
     """
-    Underbuild Depth (UD).
+    Compute Underbuild Depth (UD).
 
-    UD measures the average shortfall depth per interval, optionally weighted.
+    UD measures the (optionally weighted) *average magnitude* of shortfall.
+    Unlike NSL (which counts shortfalls), UD quantifies **how severe** shortfalls
+    are when they occur.
 
-    For each interval i:
-        shortfall_i = max(0, y_true[i] - y_pred[i])
+    Define per-interval shortfall:
 
-    Unweighted UD:
-        UD = mean(shortfall_i)
+    .. math::
 
-    Weighted UD:
-        UD_w = sum(w_i * shortfall_i) / sum(w_i)
+        s_i = \\max(0, y_i - \\hat{y}_i)
+
+    Then:
+
+    .. math::
+
+        \\mathrm{UD} = \\frac{\\sum_i w_i \\; s_i}{\\sum_i w_i}
+
+    Higher values indicate deeper average shortfall; **lower is better**.
 
     Parameters
     ----------
     y_true : array-like of shape (n_samples,)
-        Actual demand. Must be non-negative.
+        Realized demand. Must be non-negative.
 
     y_pred : array-like of shape (n_samples,)
-        Forecasted demand. Must be non-negative.
+        Forecast demand. Must be non-negative and have the same shape as
+        ``y_true``.
 
     sample_weight : float or array-like of shape (n_samples,), optional
-        Optional non-negative weights per interval. If provided, UD is
-        computed as a weighted average. If the total weight is zero, a
-        ValueError is raised.
+        Optional non-negative weights per interval. If provided, UD is computed
+        as a weighted average. If total weight is zero, UD is undefined and a
+        ``ValueError`` is raised.
 
     Returns
     -------
     float
-        Underbuild depth (average shortfall per interval).
+        UD value (units match ``y_true``/``y_pred``). Lower indicates better
+        shortfall control.
 
     Raises
     ------
     ValueError
-        If inputs are invalid or the total weight is zero.
+        If inputs are invalid (shape mismatch, negative values), or if total
+        sample weight is zero.
+
+    Notes
+    -----
+    - UD ignores overbuild entirely; it is a pure *shortfall severity* measure.
+    - UD is often interpreted alongside NSL:
+      high NSL + low UD indicates strong service consistency.
+
+    References
+    ----------
+    Electric Barometer Technical Note: Underbuild Depth (UD).
     """
     y_true_arr = _to_1d_array(y_true, "y_true")
     y_pred_arr = _to_1d_array(y_pred, "y_pred")
@@ -173,48 +221,67 @@ def hr_at_tau(
     tau: Union[float, ArrayLike],
     sample_weight: ArrayLike | None = None,
 ) -> float:
-    """
-    Hit Rate within Tolerance (HR@τ).
+    r"""
+    Compute Hit Rate within Tolerance (HR@τ).
 
-    HR@τ is the proportion of intervals where the absolute error
-    is less than or equal to a specified tolerance τ, optionally weighted.
+    HR@τ measures the (optionally weighted) fraction of intervals whose absolute
+    error falls within a tolerance band :math:`\tau`.
 
-        hit_i = 1 if |y_true[i] - y_pred[i]| <= tau_i
-                0 otherwise
+    Define absolute error and hit indicator:
 
-    Unweighted HR@τ:
-        HR = mean(hit_i)
+    .. math::
 
-    Weighted HR@τ:
-        HR_w = sum(w_i * hit_i) / sum(w_i)
+        e_i &= |y_i - \hat{y}_i| \\
+        h_i &= \mathbb{1}[e_i \le \tau_i]
+
+    Then:
+
+    .. math::
+
+        \mathrm{HR@\tau} = \frac{\sum_i w_i \; h_i}{\sum_i w_i}
+
+    Higher values are better, with :math:`\mathrm{HR@\tau} \in [0, 1]`.
 
     Parameters
     ----------
     y_true : array-like of shape (n_samples,)
-        Actual demand. Must be non-negative.
+        Realized demand. Must be non-negative.
 
     y_pred : array-like of shape (n_samples,)
-        Forecasted demand. Must be non-negative.
+        Forecast demand. Must be non-negative and have the same shape as
+        ``y_true``.
 
     tau : float or array-like of shape (n_samples,)
-        Absolute error tolerance. Must be non-negative. Can be:
+        Non-negative absolute error tolerance. Can be:
         - scalar: same tolerance for all intervals
         - 1D array: per-interval tolerance
 
     sample_weight : float or array-like of shape (n_samples,), optional
-        Optional non-negative weights per interval. If provided, HR@τ is
-        computed as a weighted average. If the total weight is zero, a
-        ValueError is raised.
+        Optional non-negative weights per interval. If provided, HR@τ is computed
+        as a weighted fraction. If total weight is zero, HR@τ is undefined and a
+        ``ValueError`` is raised.
 
     Returns
     -------
     float
-        Hit rate within tolerance in [0, 1].
+        HR@τ value in [0, 1]. Higher indicates more intervals within tolerance.
 
     Raises
     ------
     ValueError
-        If inputs are invalid or the total weight is zero.
+        If inputs are invalid (shape mismatch, negative values), if ``tau`` is
+        negative anywhere, or if total sample weight is zero.
+
+    Notes
+    -----
+    - HR@τ is a symmetric tolerance measure; it treats underbuild and overbuild
+      equally within the tolerance band.
+    - Use HR@τ alongside asymmetric metrics (e.g., CWSL) when operational costs
+      differ by direction.
+
+    References
+    ----------
+    Electric Barometer Technical Note: HR@τ (Hit Rate within Tolerance).
     """
     y_true_arr = _to_1d_array(y_true, "y_true")
     y_pred_arr = _to_1d_array(y_pred, "y_pred")
@@ -233,8 +300,7 @@ def hr_at_tau(
     n = y_true_arr.shape[0]
     w = _handle_sample_weight(sample_weight, n)
 
-    # Broadcast tau
-    tau_arr = _broadcast_param(tau, n, "tau")
+    tau_arr = _broadcast_param(tau, (n,), "tau")
     if np.any(tau_arr < 0):
         raise ValueError("tau must be non-negative.")
 
@@ -262,75 +328,76 @@ def cwsl_sensitivity(
     sample_weight: ArrayLike | None = None,
 ) -> Dict[float, float]:
     """
-    Cost Sensitivity Analysis for CWSL.
+    Evaluate CWSL across a grid of cost ratios (cost sensitivity analysis).
 
-    Evaluate the Cost-Weighted Service Loss (CWSL) across a range of
-    cost ratios R = cu / co, holding ``co`` fixed and setting
-    ``cu = R * co`` for each R in ``R_list``.
+    This helper computes Cost-Weighted Service Loss (CWSL) for each candidate
+    cost ratio:
 
-    This is the core building block for "cost sensitivity analysis":
-    it lets you see how sensitive a model's performance is to different
-    assumptions about the shortfall-vs-overbuild cost ratio.
+    .. math::
+
+        R = c_u / c_o
+
+    holding ``co`` fixed and setting:
+
+    .. math::
+
+        c_u = R \\cdot c_o
+
+    for each value in ``R_list``.
+
+    This provides a simple way to assess how model ranking or absolute loss
+    changes under alternative assumptions about shortfall vs. overbuild cost.
 
     Parameters
     ----------
     y_true : array-like of shape (n_samples,)
-        Actual demand per interval. Must be non-negative.
+        Realized demand. Must be non-negative.
 
     y_pred : array-like of shape (n_samples,)
-        Forecasted demand per interval. Must be non-negative.
+        Forecast demand. Must be non-negative and have the same shape as
+        ``y_true``.
 
     R_list : sequence of float, default=(0.5, 1.0, 2.0, 3.0)
-        Candidate cost ratios R = cu / co to evaluate.
-        - R = 1.0  → symmetric costs (short and long equally bad)
-        - R > 1.0  → shortfall is R times worse than overbuild
-        - R < 1.0  → overbuild is 1/R times worse than shortfall
+        Candidate cost ratios to evaluate. Only strictly positive values are
+        used.
 
     co : float or array-like of shape (n_samples,), default=1.0
-        Overbuild cost per unit. Can be:
-        - scalar: same overbuild cost for all intervals;
-        - 1D array: per-interval overbuild cost.
-
-        For each R in ``R_list``, we set ``cu = R * co`` and compute CWSL.
+        Overbuild cost :math:`c_o`. Can be scalar or per-interval.
 
     sample_weight : float or array-like of shape (n_samples,), optional
-        Optional non-negative weights per interval. Passed directly
-        into :func:`cwsl`.
+        Optional non-negative weights per interval, passed through to CWSL.
 
     Returns
     -------
-    Dict[float, float]
-        A dictionary mapping each R in ``R_list`` to its corresponding
-        CWSL score::
-
-            { R_1: CWSL(R_1), R_2: CWSL(R_2), ... }
-
-        Only strictly positive R values are used; non-positive R values
-        in ``R_list`` are ignored. If no valid R remains, a ValueError
-        is raised.
+    dict[float, float]
+        Mapping ``{R: cwsl_value}`` for each valid ``R`` in ``R_list``.
 
     Raises
     ------
     ValueError
-        If ``R_list`` is empty or contains no positive values, or if
-        :func:`cwsl` raises due to invalid data (e.g., negative demand).
-    """
-    R_arr = np.asarray(R_list, dtype=float)
-    if R_arr.ndim != 1 or R_arr.size == 0:
-        raise ValueError("R_list must be a non-empty 1D sequence of floats.")
+        If ``R_list`` contains no positive values, or if inputs are invalid or
+        CWSL is undefined for the given data slice.
 
+    Notes
+    -----
+    - This is a *pure evaluation* utility; it does not attempt to infer the
+      “correct” cost ratio. For that, see cost-ratio estimation utilities.
+
+    References
+    ----------
+    Electric Barometer Technical Note: Cost Sensitivity Utilities for CWSL.
+    """
     results: Dict[float, float] = {}
 
-    for R in R_arr:
+    for R in R_list:
         if R <= 0:
-            # skip non-positive ratios; they are not meaningful as cu / co
             continue
 
-        cu = R * co
+        # cu = R * co
         value = cwsl(
             y_true=y_true,
             y_pred=y_pred,
-            cu=cu,
+            cu=float(R) * co,
             co=co,
             sample_weight=sample_weight,
         )
@@ -352,50 +419,61 @@ def frs(
     sample_weight: ArrayLike | None = None,
 ) -> float:
     """
-    Forecast Readiness Score (FRS).
+    Compute Forecast Readiness Score (FRS).
 
-    Defined as::
+    FRS is a simple composite score defined as:
 
-        FRS = NSL - CWSL
+    .. math::
+
+        \\mathrm{FRS} = \\mathrm{NSL} - \\mathrm{CWSL}
 
     where:
-        - NSL is the No-Shortfall Level (fraction of intervals with no shortfall),
-        - CWSL is the Cost-Weighted Service Loss, using the same cu/co penalties.
+    - NSL measures the frequency of avoiding shortfall (higher is better)
+    - CWSL measures asymmetric, demand-normalized cost (lower is better)
 
-    Higher FRS indicates a forecast that both:
-        - avoids shortfalls (high NSL), and
-        - avoids costly asymmetric error (low CWSL).
+    This construction rewards forecasts that simultaneously:
+    - maintain high service reliability (high NSL), and
+    - avoid costly asymmetric error (low CWSL).
 
     Parameters
     ----------
     y_true : array-like of shape (n_samples,)
-        Actual demand. Must be non-negative.
+        Realized demand. Must be non-negative.
 
     y_pred : array-like of shape (n_samples,)
-        Forecasted demand. Must be non-negative.
+        Forecast demand. Must be non-negative and have the same shape as
+        ``y_true``.
 
     cu : float or array-like of shape (n_samples,)
-        Underbuild (shortfall) cost per unit. Must be strictly positive.
-        Must match the cu used for CWSL if you are comparing values.
+        Per-unit shortfall cost passed through to CWSL.
 
     co : float or array-like of shape (n_samples,)
-        Overbuild (excess) cost per unit. Must be strictly positive.
-        Must match the co used for CWSL if you are comparing values.
+        Per-unit overbuild cost passed through to CWSL.
 
     sample_weight : float or array-like of shape (n_samples,), optional
-        Optional non-negative weights per interval. Applied consistently to
-        both NSL and CWSL.
+        Optional non-negative weights per interval, applied consistently to NSL
+        and CWSL.
 
     Returns
     -------
     float
-        Forecast Readiness Score, typically in the range [-inf, 1].
-        In practice, values closer to 1 indicate strong readiness.
+        Forecast Readiness Score. Higher indicates better readiness. Values are
+        typically bounded above by 1, but can be negative depending on cost and
+        forecast error.
 
     Raises
     ------
     ValueError
-        If inputs are invalid or CWSL is undefined given the data.
+        If inputs are invalid or CWSL is undefined for the given data slice.
+
+    Notes
+    -----
+    This metric is intentionally simple and should be interpreted as a
+    readiness-oriented summary rather than a standalone loss function.
+
+    References
+    ----------
+    Electric Barometer Technical Note: Forecast Readiness Score (FRS).
     """
     # We rely on the existing validation in nsl() and cwsl()
     nsl_val = nsl(y_true=y_true, y_pred=y_pred, sample_weight=sample_weight)

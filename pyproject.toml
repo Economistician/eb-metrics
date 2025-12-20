@@ -10,9 +10,23 @@ authors = [
   { name = "Kyle Corrie (Economistician)", email = "kcorrie@economistician.com" }
 ]
 
-# Keep this minimal — ebmetrics should be pure mathematical metrics.
 dependencies = [
   "numpy>=1.24",
+]
+
+keywords = ["forecasting", "metrics", "evaluation", "time-series", "operations-research"]
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Operating System :: OS Independent",
+  "Topic :: Scientific/Engineering",
 ]
 
 [project.urls]
@@ -26,12 +40,21 @@ dev = [
   "pytest>=8.0",
   "pytest-cov>=5.0",
 ]
+sklearn = [
+  "scikit-learn>=1.3",
+]
+tf = [
+  "tensorflow>=2.13",
+]
+all = [
+  "scikit-learn>=1.3",
+  "tensorflow>=2.13",
+]
 
 [build-system]
 requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
-# Tell setuptools to use the src/ layout
 [tool.setuptools.packages.find]
 where = ["src"]
 

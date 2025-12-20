@@ -1,11 +1,31 @@
 from __future__ import annotations
 
-from typing import Iterable, Sequence, Union
+"""
+Cost-ratio utilities for the Electric Barometer ecosystem.
+
+This module contains helpers for selecting and analyzing the **asymmetric cost
+ratio** used throughout Electric Barometer metrics.
+
+In Electric Barometer notation, the cost ratio is:
+
+    R = c_u / c_o
+
+where:
+- c_u is the per-unit cost of *underbuild* (shortfall; forecasting below realized demand)
+- c_o is the per-unit cost of *overbuild* (excess; forecasting above realized demand)
+
+These utilities do not define the metrics themselves; they support choosing
+reasonable cost-ratio values for evaluation and sensitivity analysis. Conceptual
+definitions and motivation are provided in the companion research repository
+(`eb-papers`).
+"""
+
+from typing import Sequence, Union
 
 import numpy as np
 from numpy.typing import ArrayLike
 
-from .._utils import _to_1d_array, _handle_sample_weight, _broadcast_param
+from .._utils import _broadcast_param, _handle_sample_weight, _to_1d_array
 
 
 def estimate_R_cost_balance(
@@ -16,75 +36,84 @@ def estimate_R_cost_balance(
     sample_weight: ArrayLike | None = None,
 ) -> float:
     """
-    Estimate a global cost ratio R = cu / co via cost balance.
+    Estimate a global cost ratio :math:`R = c_u / c_o` via cost balance.
 
-    For each candidate R in R_grid:
+    This routine selects a single, global cost ratio :math:`R` by searching a
+    candidate grid and choosing the value where the **total weighted underbuild
+    cost** is closest to the **total weighted overbuild cost**.
 
-        cu_i = R * co_i
+    For each candidate :math:`R` in ``R_grid``:
 
-        shortfall_i = max(0, y_true[i] - y_pred[i])
-        overbuild_i = max(0, y_pred[i] - y_true[i])
+    .. math::
 
-        under_cost(R) = sum(w_i * cu_i * shortfall_i)
-        over_cost(R)  = sum(w_i * co_i * overbuild_i)
+        c_{u,i} &= R \\cdot c_{o,i} \\\\
+        s_i &= \\max(0, y_i - \\hat{y}_i) \\\\
+        e_i &= \\max(0, \\hat{y}_i - y_i) \\\\
+        C_u(R) &= \\sum_i w_i \\; c_{u,i} \\; s_i \\\\
+        C_o(R) &= \\sum_i w_i \\; c_{o,i} \\; e_i
 
-    We then choose the R that minimizes:
+    and the selected value is:
 
-        | under_cost(R) - over_cost(R) |
+    .. math::
 
-    Intuition
-    ---------
-    This "cost balance" method finds the R at which the aggregate
-    cost of being short and the aggregate cost of being long are
-    as similar as possible for a given forecast and dataset.
+        R^* = \\arg\\min_R \\; \\left| C_u(R) - C_o(R) \\right|.
 
-    It is a data-driven helper:
-    - It does *not* use margin or food cost directly.
-    - It depends on the historical error pattern of (y_true, y_pred)
-      and the assumed overbuild cost profile ``co``.
-
-    You can use the resulting R* as:
-    - a candidate global R for evaluation, or
-    - the center of a cost-sensitivity range (e.g., test R in
-      {R*/2, R*, 2*R*}).
+    The returned :math:`R^*` can be used as:
+    - a reasonable default global cost ratio for evaluation, and/or
+    - the center of a sensitivity sweep (e.g., ``{R*/2, R*, 2*R*}``).
 
     Parameters
     ----------
     y_true : array-like of shape (n_samples,)
-        Actual demand. Must be non-negative.
+        Realized demand (non-negative).
 
     y_pred : array-like of shape (n_samples,)
-        Forecasted demand. Must be non-negative.
+        Forecast demand (non-negative). Must have the same shape as ``y_true``.
 
     R_grid : sequence of float, default=(0.5, 1.0, 2.0, 3.0)
-        Candidate cost ratios R to search over. Only strictly positive
+        Candidate cost ratios :math:`R` to search over. Only **strictly positive**
         values are considered.
 
     co : float or array-like of shape (n_samples,), default=1.0
-        Overbuild cost per unit. Can be:
+        Overbuild cost :math:`c_o` per unit. Can be:
+
         - scalar: same overbuild cost for all intervals
         - 1D array: per-interval overbuild cost
 
-        For each R, underbuild costs are cu_i = R * co_i.
+        For each :math:`R`, the implied underbuild cost is
+        :math:`c_{u,i} = R \\cdot c_{o,i}`.
 
     sample_weight : float or array-like of shape (n_samples,), optional
-        Optional non-negative weights per interval, used to weight the
-        cost aggregation. If None, all intervals get weight 1.0.
+        Optional non-negative weights per interval used to weight the cost
+        aggregation. If ``None``, all intervals receive weight ``1.0``.
 
     Returns
     -------
     float
-        The R in R_grid that minimizes |under_cost(R) - over_cost(R)|.
-        If multiple R yield the same minimal gap, the first such value
-        in R_grid is returned, except in the degenerate "perfect
-        forecast" case (zero error everywhere), where the R in R_grid
-        closest to 1.0 is returned.
+        The value in ``R_grid`` that minimizes
+        :math:`\\left| C_u(R) - C_o(R) \\right|`.
+
+        If multiple values yield the same minimal gap, the first such value in
+        the (filtered) grid is returned, except in the degenerate *perfect
+        forecast* case (zero error everywhere), where the candidate closest to
+        ``1.0`` is returned.
 
     Raises
     ------
     ValueError
-        If inputs are invalid (e.g., negative y_true or y_pred),
-        R_grid is empty, or contains no positive values.
+        If inputs are invalid (e.g., negative ``y_true`` or ``y_pred``), if
+        ``R_grid`` is empty, or if it contains no positive values.
+
+    Notes
+    -----
+    This helper is intentionally simple: it does **not** infer cost structure
+    from business inputs, nor does it estimate per-item costs. It provides a
+    reproducible, data-driven way to select a reasonable global :math:`R` given
+    realized outcomes and forecast behavior.
+
+    References
+    ----------
+    Electric Barometer Technical Note: Cost Ratio Estimation (Choosing :math:`R`).
     """
     y_true_arr = _to_1d_array(y_true, "y_true")
     y_pred_arr = _to_1d_array(y_pred, "y_pred")
@@ -95,22 +124,20 @@ def estimate_R_cost_balance(
             f"got {y_true_arr.shape} and {y_pred_arr.shape}"
         )
 
-    if np.any(y_true_arr < 0):
-        raise ValueError("y_true must be non-negative (demand cannot be negative).")
-    if np.any(y_pred_arr < 0):
-        raise ValueError("y_pred must be non-negative (forecast cannot be negative).")
+    if np.any(y_true_arr < 0) or np.any(y_pred_arr < 0):
+        raise ValueError("y_true and y_pred must be non-negative.")
 
-    n = y_true_arr.shape[0]
+    co_arr = _broadcast_param(co, y_true_arr.shape, "co")
+    if np.any(co_arr <= 0):
+        raise ValueError("co must be strictly positive.")
 
-    # Broadcast co and weights
-    co_arr = _broadcast_param(co, n, "co")
-    w = _handle_sample_weight(sample_weight, n)
+    w = _handle_sample_weight(sample_weight, y_true_arr.shape[0], dtype=float)
 
-    # Precompute shortfall / overbuild
     shortfall = np.maximum(0.0, y_true_arr - y_pred_arr)
     overbuild = np.maximum(0.0, y_pred_arr - y_true_arr)
 
     R_grid_arr = np.asarray(R_grid, dtype=float)
+
     if R_grid_arr.ndim != 1 or R_grid_arr.size == 0:
         raise ValueError("R_grid must be a non-empty 1D sequence of floats.")
 
