@@ -1,7 +1,7 @@
 """
 Public metric API for the Electric Barometer ecosystem.
 
-The `ebmetrics.metrics` package provides a curated, stable import surface for
+The `eb_metrics.metrics` package provides a curated, stable import surface for
 Electric Barometer evaluation metrics.
 
 This package groups metrics into four main categories:
@@ -25,19 +25,19 @@ the executable reference implementation.
 
 Notes
 -----
-Users are encouraged to import from `ebmetrics.metrics` or from the relevant
-submodule (e.g., `ebmetrics.metrics.service`) rather than internal helpers.
+Users are encouraged to import from `eb_metrics.metrics` or from the relevant
+submodule (e.g., `eb_metrics.metrics.service`) rather than internal helpers.
 
 Examples
 --------
 Import from the package surface:
 
->>> from ebmetrics.metrics import cwsl, nsl, frs
+>>> from eb_metrics.metrics import cwsl, nsl, frs
 
 Or import from a submodule:
 
->>> from ebmetrics.metrics.loss import cwsl
->>> from ebmetrics.metrics.service import nsl
+>>> from eb_metrics.metrics.loss import cwsl
+>>> from eb_metrics.metrics.service import nsl
 """
 
 from .cost_ratio import estimate_R_cost_balance

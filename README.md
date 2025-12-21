@@ -66,7 +66,7 @@ pip install -e .
 ## Quick Usage Example
 
 ```python
-from ebmetrics.metrics.loss import cost_weighted_service_loss
+from eb_metrics.metrics.loss import cost_weighted_service_loss
 
 loss = cost_weighted_service_loss(
     y_true=actual,
@@ -84,22 +84,22 @@ definitions and return semantics.
 
 The primary public modules are:
 
-- `ebmetrics.metrics.loss`  
+- `eb_metrics.metrics.loss`  
   Asymmetric loss formulations (e.g., CWSL)
 
-- `ebmetrics.metrics.service`  
+- `eb_metrics.metrics.service`  
   Service-level and readiness diagnostics (NSL, UD, HR@τ, FRS)
 
-- `ebmetrics.metrics.regression`  
+- `eb_metrics.metrics.regression`  
   Classical regression metrics
 
-- `ebmetrics.metrics.cost_ratio`  
+- `eb_metrics.metrics.cost_ratio`  
   Cost-ratio estimation and sensitivity utilities
 
-- `ebmetrics.frameworks.keras_loss`  
+- `eb_metrics.frameworks.keras_loss`  
   Keras-compatible loss wrappers
 
-- `ebmetrics.frameworks.sklearn_scorer`  
+- `eb_metrics.frameworks.sklearn_scorer`  
   scikit-learn-compatible scoring interfaces
 
 Users are encouraged to import from these modules rather than internal helpers.

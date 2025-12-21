@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from ebmetrics.metrics.regression import (
+from eb_metrics.metrics.regression import (
     mae,
     mse,
     rmse,

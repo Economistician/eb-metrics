@@ -1,7 +1,7 @@
 """
 Framework integrations for Electric Barometer metrics.
 
-The ``ebmetrics.frameworks`` package provides **optional adapters** that allow
+The ``eb_metrics.frameworks`` package provides **optional adapters** that allow
 Electric Barometer metrics to plug into common machine-learning and forecasting
 workflows (training, model selection, and evaluation) without redefining metric
 semantics.
@@ -14,7 +14,7 @@ Currently supported integrations include:
 Notes
 -----
 - These integrations are thin wrappers around core Electric Barometer metrics.
-  Metric definitions live in :mod:`ebmetrics.metrics`.
+  Metric definitions live in :mod:`eb_metrics.metrics`.
 - Some integrations rely on optional third-party dependencies and may import
   those dependencies lazily (e.g., TensorFlow).
 

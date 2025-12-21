@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 import pytest
 
-from ebmetrics.frameworks import make_cwsl_keras_loss
+from eb_metrics.frameworks import make_cwsl_keras_loss
 
 
 # ----------------------------------------------------------------------

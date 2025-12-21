@@ -6,4 +6,4 @@ NumPy-style docstrings in the source code.
 
 ## Metrics Package
 
-::: ebmetrics.metrics
+::: eb_metrics.metrics

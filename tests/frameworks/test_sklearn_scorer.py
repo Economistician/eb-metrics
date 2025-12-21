@@ -7,8 +7,8 @@ import sys
 import numpy as np
 import pytest
 
-from ebmetrics.metrics import cwsl
-from ebmetrics.frameworks.sklearn_scorer import cwsl_loss, cwsl_scorer
+from eb_metrics.metrics import cwsl
+from eb_metrics.frameworks.sklearn_scorer import cwsl_loss, cwsl_scorer
 
 
 def test_cwsl_loss_matches_core_metric():
@@ -77,7 +77,7 @@ def test_cwsl_scorer_raises_import_error_without_sklearn(monkeypatch):
     monkeypatch.setitem(sys.modules, "sklearn", None)
     monkeypatch.setitem(sys.modules, "sklearn.metrics", None)
 
-    from ebmetrics.frameworks import sklearn_scorer as mod
+    from eb_metrics.frameworks import sklearn_scorer as mod
 
     with pytest.raises(ImportError):
         mod.cwsl_scorer(cu=2.0, co=1.0)

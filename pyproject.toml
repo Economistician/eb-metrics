@@ -1,5 +1,5 @@
 [project]
-name = "ebmetrics"
+name = "eb-metrics"
 version = "0.1.1"
 description = "Core Electric Barometer error metrics, including asymmetric CWSL and standard forecast loss functions."
 readme = "README.md"

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from ebmetrics.metrics import estimate_R_cost_balance
+from eb_metrics.metrics import estimate_R_cost_balance
 
 
 def test_estimate_R_cost_balance_perfect_forecast_prefers_R_near_1():

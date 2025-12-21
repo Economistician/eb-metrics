@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Classical regression and forecasting error metrics.
 
@@ -9,8 +11,6 @@ reference points (e.g., MAE, RMSE, MAPE).
 Conceptual Electric Barometer metrics (e.g., CWSL, NSL) are implemented in other
 modules. The functions here are intentionally lightweight and dependency-minimal.
 """
-
-from __future__ import annotations
 
 __all__ = [
     "mae",

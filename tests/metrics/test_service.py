@@ -1,14 +1,14 @@
 import numpy as np
 import pytest
 
-from ebmetrics.metrics.service import (
+from eb_metrics.metrics.service import (
     nsl,
     ud,
     hr_at_tau,
     frs,
     cwsl_sensitivity,
 )
-from ebmetrics.metrics.loss import cwsl
+from eb_metrics.metrics.loss import cwsl
 
 
 # ----------------------------------------------------------------------

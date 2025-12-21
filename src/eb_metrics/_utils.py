@@ -1,5 +1,5 @@
 """
-Internal utility helpers for `ebmetrics`.
+Internal utility helpers for `eb_metrics`.
 
 This module contains internal helpers used across the Electric Barometer metrics
 implementation. Functions in this module are **not** part of the public API and
@@ -14,8 +14,8 @@ The utilities here primarily support:
 
 Notes
 -----
-Downstream modules should prefer importing from `ebmetrics.metrics` or
-`ebmetrics.frameworks`. This module is intended for internal reuse only.
+Downstream modules should prefer importing from `eb_metrics.metrics` or
+`eb_metrics.frameworks`. This module is intended for internal reuse only.
 """
 
 from __future__ import annotations

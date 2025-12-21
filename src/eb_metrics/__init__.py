@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 """
-`ebmetrics` — core metric library for the Electric Barometer ecosystem.
+`eb_metrics` — core metric library for the Electric Barometer ecosystem.
 
 This package exposes a clean, stable public API for:
 
@@ -15,14 +17,12 @@ Notes
 -----
 The recommended import path is either:
 
-- package root (convenience): ``from ebmetrics import cwsl, nsl, frs``
-- submodules (explicit): ``from ebmetrics.metrics.loss import cwsl``
+- package root (convenience): ``from eb_metrics import cwsl, nsl, frs``
+- submodules (explicit): ``from eb_metrics.metrics.loss import cwsl``
 
 Internal helpers live in private modules (prefixed with "_") and are not part of
 the public API.
 """
-
-from __future__ import annotations
 
 from importlib.metadata import PackageNotFoundError, version
 
@@ -70,7 +70,7 @@ def _resolve_version() -> str:
     """
     try:
         # Must match the distribution name in pyproject.toml ([project].name)
-        return version("ebmetrics")
+        return version("eb-metrics")
     except PackageNotFoundError:
         return "0.0.0"
 

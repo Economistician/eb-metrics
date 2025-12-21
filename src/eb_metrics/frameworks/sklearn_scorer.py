@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 scikit-learn integration for Electric Barometer metrics.
 
@@ -16,14 +18,12 @@ Notes
   the companion research repository (`eb-papers`).
 """
 
-from __future__ import annotations
-
 from typing import Callable
 
 import numpy as np
 from numpy.typing import ArrayLike
 
-from ebmetrics.metrics import cwsl
+from eb_metrics.metrics import cwsl
 
 __all__ = ["cwsl_loss", "cwsl_scorer"]
 
@@ -39,7 +39,7 @@ def cwsl_loss(
     r"""
     Compute the (positive) Cost-Weighted Service Loss (CWSL) for scikit-learn usage.
 
-    This helper is a thin wrapper around :func:`ebmetrics.metrics.cwsl` that:
+    This helper is a thin wrapper around :func:`eb_metrics.metrics.cwsl` that:
 
     - enforces strict positivity of ``cu`` and ``co`` (to align with typical
       scikit-learn scorer usage), and
@@ -145,8 +145,13 @@ def cwsl_scorer(cu: float, co: float) -> Callable:
     from sklearn.metrics import make_scorer
 
     def _loss(
-        y_true: ArrayLike, y_pred: ArrayLike, sample_weight: ArrayLike | None = None
+        y_true: ArrayLike,
+        y_pred: ArrayLike,
+        sample_weight: ArrayLike | None = None,
+        **kwargs,
     ) -> float:
+        # Accept **kwargs to remain compatible with sklearn passing metadata keys.
+        # (e.g., needs_proba / needs_threshold in some scorer pathways)
         return cwsl_loss(
             y_true=y_true,
             y_pred=y_pred,
@@ -160,6 +165,5 @@ def cwsl_scorer(cu: float, co: float) -> Callable:
     return make_scorer(
         _loss,
         greater_is_better=False,
-        needs_proba=False,
-        needs_threshold=False,
+        response_method="predict",
     )

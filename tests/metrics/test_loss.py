@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from ebmetrics.metrics import cwsl
+from eb_metrics.metrics import cwsl
 
 
 def test_cwsl_two_interval_example():

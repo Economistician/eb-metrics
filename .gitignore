@@ -26,6 +26,10 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# --- Added: common local build artifacts ---
+pip-wheel-metadata/
+*.whl
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -50,6 +54,10 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+
+# --- Added: test runner caches ---
+.pytest_cache/
+.cache/
 
 # Translations
 *.mo
@@ -144,6 +152,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# --- Added: dotenv variants ---
+.env.*
+!.env.example
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -153,6 +165,9 @@ venv.bak/
 
 # mkdocs documentation
 /site
+
+# --- Added: MkDocs cache (Material) ---
+.mkdocs_cache/
 
 # mypy
 .mypy_cache/
@@ -182,11 +197,15 @@ cython_debug/
 .abstra/
 
 # Visual Studio Code
-#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
+#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore
 #  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#  and can be added to the global gitignore or merged into this file. However, if you prefer, 
+#  and can be added to the global gitignore or merged into this file. However, if you prefer,
 #  you could uncomment the following to ignore the entire vscode folder
 # .vscode/
+
+# --- Added: VS Code workspace files ---
+.vscode/
+*.code-workspace
 
 # Ruff stuff:
 .ruff_cache/
@@ -205,3 +224,11 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# --- Added: OS/editor junk ---
+.DS_Store
+Thumbs.db
+
+# --- Added: local tooling / misc ---
+*.log
+*.tmp

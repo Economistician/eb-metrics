@@ -9,4 +9,4 @@ in the source code.
 
 ## Framework Utilities
 
-::: ebmetrics.frameworks
+::: eb_metrics.frameworks
