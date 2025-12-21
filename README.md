@@ -18,6 +18,20 @@ metrics are maintained in the companion research repository:
 
 ---
 
+## Naming convention
+
+Electric Barometer packages follow standard Python packaging conventions:
+
+- **Distribution names** (used with `pip install`) use hyphens  
+  e.g. `pip install eb-metrics`
+- **Python import paths** use underscores  
+  e.g. `import eb_metrics`
+
+This distinction is intentional and consistent across the Electric Barometer
+ecosystem.
+
+---
+
 ## What This Library Provides
 
 - **Asymmetric, cost-weighted loss metrics** (e.g., Cost-Weighted Service Loss)

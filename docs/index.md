@@ -14,6 +14,20 @@ logistics, inventory planning, and other service-constrained systems.
 
 ---
 
+## Naming convention
+
+Electric Barometer packages follow a consistent naming convention:
+
+- **Distribution names** (used with `pip install`) use hyphens  
+  e.g. `pip install eb-metrics`
+- **Python import paths** use underscores  
+  e.g. `import eb_metrics`
+
+This follows standard Python packaging practices and avoids ambiguity between
+package names and module imports.
+
+---
+
 ## What this package provides
 
 ### Asymmetric, cost-aware loss metrics
