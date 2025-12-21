@@ -1,9 +1,10 @@
 """
 Framework integrations for Electric Barometer metrics.
 
-The `ebmetrics.frameworks` package provides optional adapters that allow
+The ``ebmetrics.frameworks`` package provides **optional adapters** that allow
 Electric Barometer metrics to plug into common machine-learning and forecasting
-workflows.
+workflows (training, model selection, and evaluation) without redefining metric
+semantics.
 
 Currently supported integrations include:
 
@@ -21,7 +22,10 @@ Conceptual definitions and interpretation are documented in the companion
 research repository (`eb-papers`).
 """
 
+# Keras / TensorFlow
 from .keras_loss import make_cwsl_keras_loss
+
+# scikit-learn
 from .sklearn_scorer import cwsl_loss, cwsl_scorer
 
 __all__ = [

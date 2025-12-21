@@ -1,0 +1,42 @@
+site_name: eb-metrics
+site_description: Core Electric Barometer metrics for operational forecasting evaluation
+site_url: https://github.com/Economistician/eb-metrics
+
+repo_name: Economistician/eb-metrics
+repo_url: https://github.com/Economistician/eb-metrics
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - API Reference:
+      - Metrics: api/metrics.md
+      - Frameworks: api/frameworks.md
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            show_source: false
+            show_signature_annotations: true
+            separate_signature: true
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js

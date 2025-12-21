@@ -105,13 +105,13 @@ def rmse(y_true: ArrayLike, y_pred: ArrayLike) -> float:
 
 
 def mape(y_true: ArrayLike, y_pred: ArrayLike) -> float:
-    """Mean Absolute Percentage Error (MAPE).
+    r"""Mean Absolute Percentage Error (MAPE).
 
     MAPE is computed over samples where ``y_true != 0``:
 
-    .. math::
-
-        \\mathrm{MAPE} = 100 \\cdot \\mathrm{mean}\\left(\\left|\\frac{y-\\hat{y}}{y}\\right|\\right)
+    $$
+    \mathrm{MAPE} = 100 \cdot \mathrm{mean}\left(\left|\frac{y-\hat{y}}{y}\right|\right)
+    $$
 
     Parameters
     ----------
@@ -144,13 +144,13 @@ def mape(y_true: ArrayLike, y_pred: ArrayLike) -> float:
 
 
 def wmape(y_true: ArrayLike, y_pred: ArrayLike) -> float:
-    """Weighted Mean Absolute Percentage Error (WMAPE).
+    r"""Weighted Mean Absolute Percentage Error (WMAPE).
 
     WMAPE is also commonly described as demand-normalized absolute error:
 
-    .. math::
-
-        \\mathrm{WMAPE} = 100 \\cdot \\frac{\\sum_i |y_i-\\hat{y}_i|}{\\sum_i |y_i|}
+    $$
+    \mathrm{WMAPE} = 100 \cdot \frac{\sum_i |y_i-\hat{y}_i|}{\sum_i |y_i|}
+    $$
 
     Parameters
     ----------
@@ -206,9 +206,9 @@ def smape(y_true: ArrayLike, y_pred: ArrayLike) -> float:
 
     This implementation follows a common competition definition:
 
-    .. math::
-
-        \\mathrm{sMAPE} = 200 \\cdot \\mathrm{mean}\\left(\\frac{|y-\\hat{y}|}{|y| + |\\hat{y}|}\\right)
+    $$
+    \mathrm{sMAPE} = 200 \cdot \mathrm{mean}\left(\frac{|y-\hat{y}|}{|y| + |\hat{y}|}\right)
+    $$
 
     Parameters
     ----------
@@ -239,13 +239,13 @@ def smape(y_true: ArrayLike, y_pred: ArrayLike) -> float:
 # Log-based metrics
 # ----------------------------------------------------------------------
 def msle(y_true: ArrayLike, y_pred: ArrayLike) -> float:
-    """Mean Squared Log Error (MSLE).
+    r"""Mean Squared Log Error (MSLE).
 
     MSLE is defined as:
 
-    .. math::
-
-        \\mathrm{MSLE} = \\mathrm{mean}\\left((\\log(1+y) - \\log(1+\\hat{y}))^2\\right)
+    $$
+    \mathrm{MSLE} = \mathrm{mean}\left((\log(1+y) - \log(1+\hat{y}))^2\right)
+    $$
 
     Parameters
     ----------
@@ -301,15 +301,15 @@ def rmsle(y_true: ArrayLike, y_pred: ArrayLike) -> float:
 # Scaled metrics
 # ----------------------------------------------------------------------
 def mase(y_true: ArrayLike, y_pred: ArrayLike, y_naive: ArrayLike) -> float:
-    """Mean Absolute Scaled Error (MASE).
+    r"""Mean Absolute Scaled Error (MASE).
 
     MASE scales the model MAE by the MAE of a naive forecast:
 
-    .. math::
+    $$
+    \mathrm{MASE} = \frac{\mathrm{MAE}(y,\hat{y})}{\mathrm{MAE}(y, y^{\text{naive}})}
+    $$
 
-        \\mathrm{MASE} = \\frac{\\mathrm{MAE}(y,\\hat{y})}{\\mathrm{MAE}(y, y^{\\text{naive}})}
-
-    where ``y_naive`` is typically a naive baseline such as :math:`y_{t-1}`.
+    where ``y_naive`` is typically a naive baseline such as $y_{t-1}$.
 
     Parameters
     ----------

@@ -36,10 +36,11 @@ def cwsl_loss(
     co: float,
     sample_weight: ArrayLike | None = None,
 ) -> float:
-    """
+    r"""
     Compute the (positive) Cost-Weighted Service Loss (CWSL) for scikit-learn usage.
 
     This helper is a thin wrapper around :func:`ebmetrics.metrics.cwsl` that:
+
     - enforces strict positivity of ``cu`` and ``co`` (to align with typical
       scikit-learn scorer usage), and
     - converts inputs to ``numpy.ndarray`` prior to evaluation.
@@ -48,16 +49,12 @@ def cwsl_loss(
     ----------
     y_true : array-like of shape (n_samples,)
         Realized demand values.
-
     y_pred : array-like of shape (n_samples,)
         Forecast values.
-
     cu : float
         Per-unit cost of underbuild (shortfall). Must be strictly positive.
-
     co : float
         Per-unit cost of overbuild (excess). Must be strictly positive.
-
     sample_weight : array-like of shape (n_samples,), optional
         Optional per-sample weights passed through to CWSL.
 
@@ -71,6 +68,18 @@ def cwsl_loss(
     ValueError
         If ``cu`` or ``co`` are not strictly positive, or if the underlying CWSL
         computation is undefined for the given inputs.
+
+    Notes
+    -----
+    CWSL is defined as a demand-normalized asymmetric cost:
+
+    $$
+    \mathrm{CWSL} = \frac{\sum_i w_i \left(c_u s_i + c_o o_i\right)}{\sum_i w_i y_i},
+    \quad
+    s_i = \max(0, y_i-\hat{y}_i),
+    \quad
+    o_i = \max(0, \hat{y}_i-y_i)
+    $$
 
     References
     ----------
@@ -91,7 +100,7 @@ def cwsl_loss(
 
 
 def cwsl_scorer(cu: float, co: float) -> Callable:
-    """
+    r"""
     Build a scikit-learn scorer based on Cost-Weighted Service Loss (CWSL).
 
     The returned object can be used wherever scikit-learn expects a scorer, for
@@ -104,7 +113,6 @@ def cwsl_scorer(cu: float, co: float) -> Callable:
     ----------
     cu : float
         Per-unit cost of underbuild (shortfall). Must be strictly positive.
-
     co : float
         Per-unit cost of overbuild (excess). Must be strictly positive.
 
@@ -115,9 +123,15 @@ def cwsl_scorer(cu: float, co: float) -> Callable:
 
     Notes
     -----
-    scikit-learn assumes scores are maximized. Because CWSL is a loss, the scorer
-    returned by this function is configured with ``greater_is_better=False`` so
+    scikit-learn assumes scores are maximized. Because CWSL is a loss (lower is
+    better), this scorer is configured with ``greater_is_better=False`` so
     scikit-learn negates the value internally.
+
+    In other words, the score returned by scikit-learn is:
+
+    $$
+    \text{score} = -\,\mathrm{CWSL}
+    $$
 
     References
     ----------

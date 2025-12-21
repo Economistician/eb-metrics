@@ -34,26 +34,26 @@ def nsl(
     y_pred: ArrayLike,
     sample_weight: ArrayLike | None = None,
 ) -> float:
-    """
+    r"""
     Compute No-Shortfall Level (NSL).
 
     NSL is the (optionally weighted) fraction of evaluation intervals in which
     the forecast does **not** underpredict realized demand.
 
-    For each interval :math:`i`, define a hit indicator:
+    For each interval $i$, define a hit indicator:
 
-    .. math::
-
-        h_i = \\mathbb{1}[\\hat{y}_i \\ge y_i]
+    $$
+    h_i = \mathbb{1}[\hat{y}_i \ge y_i]
+    $$
 
     Then:
 
-    .. math::
+    $$
+    \mathrm{NSL} = \frac{\sum_i w_i \; h_i}{\sum_i w_i}
+    $$
 
-        \\mathrm{NSL} = \\frac{\\sum_i w_i \\; h_i}{\\sum_i w_i}
-
-    where :math:`w_i` are optional sample weights (default :math:`w_i = 1`).
-    Higher values are better, with :math:`\\mathrm{NSL} \\in [0, 1]`.
+    where $w_i$ are optional sample weights (default $w_i = 1$).
+    Higher values are better, with $\mathrm{NSL} \in [0, 1]$.
 
     Parameters
     ----------
@@ -127,7 +127,7 @@ def ud(
     y_pred: ArrayLike,
     sample_weight: ArrayLike | None = None,
 ) -> float:
-    """
+    r"""
     Compute Underbuild Depth (UD).
 
     UD measures the (optionally weighted) *average magnitude* of shortfall.
@@ -136,15 +136,15 @@ def ud(
 
     Define per-interval shortfall:
 
-    .. math::
-
-        s_i = \\max(0, y_i - \\hat{y}_i)
+    $$
+    s_i = \max(0, y_i - \hat{y}_i)
+    $$
 
     Then:
 
-    .. math::
-
-        \\mathrm{UD} = \\frac{\\sum_i w_i \\; s_i}{\\sum_i w_i}
+    $$
+    \mathrm{UD} = \frac{\sum_i w_i \; s_i}{\sum_i w_i}
+    $$
 
     Higher values indicate deeper average shortfall; **lower is better**.
 
@@ -225,22 +225,24 @@ def hr_at_tau(
     Compute Hit Rate within Tolerance (HR@τ).
 
     HR@τ measures the (optionally weighted) fraction of intervals whose absolute
-    error falls within a tolerance band :math:`\tau`.
+    error falls within a tolerance band $\tau$.
 
     Define absolute error and hit indicator:
 
-    .. math::
-
-        e_i &= |y_i - \hat{y}_i| \\
-        h_i &= \mathbb{1}[e_i \le \tau_i]
+    $$
+    \begin{aligned}
+    e_i &= |y_i - \hat{y}_i| \\
+    h_i &= \mathbb{1}[e_i \le \tau_i]
+    \end{aligned}
+    $$
 
     Then:
 
-    .. math::
+    $$
+    \mathrm{HR@\tau} = \frac{\sum_i w_i \; h_i}{\sum_i w_i}
+    $$
 
-        \mathrm{HR@\tau} = \frac{\sum_i w_i \; h_i}{\sum_i w_i}
-
-    Higher values are better, with :math:`\mathrm{HR@\tau} \in [0, 1]`.
+    Higher values are better, with $\mathrm{HR@\tau} \in [0, 1]$.
 
     Parameters
     ----------
@@ -327,21 +329,21 @@ def cwsl_sensitivity(
     co: Union[float, ArrayLike] = 1.0,
     sample_weight: ArrayLike | None = None,
 ) -> Dict[float, float]:
-    """
+    r"""
     Evaluate CWSL across a grid of cost ratios (cost sensitivity analysis).
 
     This helper computes Cost-Weighted Service Loss (CWSL) for each candidate
     cost ratio:
 
-    .. math::
-
-        R = c_u / c_o
+    $$
+    R = c_u / c_o
+    $$
 
     holding ``co`` fixed and setting:
 
-    .. math::
-
-        c_u = R \\cdot c_o
+    $$
+    c_u = R \cdot c_o
+    $$
 
     for each value in ``R_list``.
 
@@ -362,7 +364,7 @@ def cwsl_sensitivity(
         used.
 
     co : float or array-like of shape (n_samples,), default=1.0
-        Overbuild cost :math:`c_o`. Can be scalar or per-interval.
+        Overbuild cost $c_o$. Can be scalar or per-interval.
 
     sample_weight : float or array-like of shape (n_samples,), optional
         Optional non-negative weights per interval, passed through to CWSL.
@@ -418,14 +420,14 @@ def frs(
     co: Union[float, ArrayLike],
     sample_weight: ArrayLike | None = None,
 ) -> float:
-    """
+    r"""
     Compute Forecast Readiness Score (FRS).
 
     FRS is a simple composite score defined as:
 
-    .. math::
-
-        \\mathrm{FRS} = \\mathrm{NSL} - \\mathrm{CWSL}
+    $$
+    \mathrm{FRS} = \mathrm{NSL} - \mathrm{CWSL}
+    $$
 
     where:
     - NSL measures the frequency of avoiding shortfall (higher is better)

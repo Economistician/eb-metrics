@@ -70,7 +70,7 @@ def _resolve_version() -> str:
     """
     try:
         # Must match the distribution name in pyproject.toml ([project].name)
-        return version("eb-metrics")
+        return version("ebmetrics")
     except PackageNotFoundError:
         return "0.0.0"
 

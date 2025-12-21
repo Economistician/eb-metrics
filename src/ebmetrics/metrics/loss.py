@@ -34,44 +34,46 @@ def cwsl(
     co: Union[float, ArrayLike],
     sample_weight: ArrayLike | None = None,
 ) -> float:
-    """
+    r"""
     Compute Cost-Weighted Service Loss (CWSL).
 
     CWSL is a demand-normalized, directionally-aware loss that penalizes
     **shortfalls** and **overbuilds** using explicit per-unit costs.
 
-    For each interval :math:`i`:
+    For each interval $i$:
 
-    .. math::
-
-        s_i &= \\max(0, y_i - \\hat{y}_i) \\\\
-        o_i &= \\max(0, \\hat{y}_i - y_i) \\\\
-        \\text{cost}_i &= c_{u,i} \\; s_i + c_{o,i} \\; o_i
+    $$
+    \begin{aligned}
+    s_i &= \max(0, y_i - \hat{y}_i) \\
+    o_i &= \max(0, \hat{y}_i - y_i) \\
+    \text{cost}_i &= c_{u,i} \; s_i + c_{o,i} \; o_i
+    \end{aligned}
+    $$
 
     and the aggregated metric is:
 
-    .. math::
+    $$
+    \mathrm{CWSL} = \frac{\sum_i w_i \; \text{cost}_i}{\sum_i w_i \; y_i}
+    $$
 
-        \\mathrm{CWSL} = \\frac{\\sum_i w_i \\; \\text{cost}_i}{\\sum_i w_i \\; y_i}
-
-    where :math:`w_i` are optional sample weights (default :math:`w_i = 1`).
+    where $w_i$ are optional sample weights (default $w_i = 1$).
     Lower values indicate better performance.
 
     Parameters
     ----------
     y_true : array-like of shape (n_samples,)
-        Realized demand :math:`y`. Must be non-negative.
+        Realized demand $y$. Must be non-negative.
 
     y_pred : array-like of shape (n_samples,)
-        Forecast demand :math:`\\hat{y}`. Must be non-negative and have the same
+        Forecast demand $\hat{y}$. Must be non-negative and have the same
         shape as ``y_true``.
 
     cu : float or array-like of shape (n_samples,)
-        Per-unit shortfall cost :math:`c_u`. Can be a scalar (global cost) or a
+        Per-unit shortfall cost $c_u$. Can be a scalar (global cost) or a
         1D array specifying per-interval costs. Must be non-negative.
 
     co : float or array-like of shape (n_samples,)
-        Per-unit overbuild cost :math:`c_o`. Can be a scalar (global cost) or a
+        Per-unit overbuild cost $c_o$. Can be a scalar (global cost) or a
         1D array specifying per-interval costs. Must be non-negative.
 
     sample_weight : float or array-like of shape (n_samples,), optional

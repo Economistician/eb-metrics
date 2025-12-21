@@ -35,30 +35,32 @@ def estimate_R_cost_balance(
     co: Union[float, ArrayLike] = 1.0,
     sample_weight: ArrayLike | None = None,
 ) -> float:
-    """
-    Estimate a global cost ratio :math:`R = c_u / c_o` via cost balance.
+    r"""
+    Estimate a global cost ratio $R = c_u / c_o$ via cost balance.
 
-    This routine selects a single, global cost ratio :math:`R` by searching a
+    This routine selects a single, global cost ratio $R$ by searching a
     candidate grid and choosing the value where the **total weighted underbuild
     cost** is closest to the **total weighted overbuild cost**.
 
-    For each candidate :math:`R` in ``R_grid``:
+    For each candidate $R$ in ``R_grid``:
 
-    .. math::
-
-        c_{u,i} &= R \\cdot c_{o,i} \\\\
-        s_i &= \\max(0, y_i - \\hat{y}_i) \\\\
-        e_i &= \\max(0, \\hat{y}_i - y_i) \\\\
-        C_u(R) &= \\sum_i w_i \\; c_{u,i} \\; s_i \\\\
-        C_o(R) &= \\sum_i w_i \\; c_{o,i} \\; e_i
+    $$
+    \begin{aligned}
+    c_{u,i} &= R \cdot c_{o,i} \\
+    s_i &= \max(0, y_i - \hat{y}_i) \\
+    e_i &= \max(0, \hat{y}_i - y_i) \\
+    C_u(R) &= \sum_i w_i \; c_{u,i} \; s_i \\
+    C_o(R) &= \sum_i w_i \; c_{o,i} \; e_i
+    \end{aligned}
+    $$
 
     and the selected value is:
 
-    .. math::
+    $$
+    R^* = \arg\min_R \; \left| C_u(R) - C_o(R) \right|.
+    $$
 
-        R^* = \\arg\\min_R \\; \\left| C_u(R) - C_o(R) \\right|.
-
-    The returned :math:`R^*` can be used as:
+    The returned $R^*$ can be used as:
     - a reasonable default global cost ratio for evaluation, and/or
     - the center of a sensitivity sweep (e.g., ``{R*/2, R*, 2*R*}``).
 
@@ -71,17 +73,17 @@ def estimate_R_cost_balance(
         Forecast demand (non-negative). Must have the same shape as ``y_true``.
 
     R_grid : sequence of float, default=(0.5, 1.0, 2.0, 3.0)
-        Candidate cost ratios :math:`R` to search over. Only **strictly positive**
+        Candidate cost ratios $R$ to search over. Only **strictly positive**
         values are considered.
 
     co : float or array-like of shape (n_samples,), default=1.0
-        Overbuild cost :math:`c_o` per unit. Can be:
+        Overbuild cost $c_o$ per unit. Can be:
 
         - scalar: same overbuild cost for all intervals
         - 1D array: per-interval overbuild cost
 
-        For each :math:`R`, the implied underbuild cost is
-        :math:`c_{u,i} = R \\cdot c_{o,i}`.
+        For each $R$, the implied underbuild cost is
+        $c_{u,i} = R \cdot c_{o,i}$.
 
     sample_weight : float or array-like of shape (n_samples,), optional
         Optional non-negative weights per interval used to weight the cost
@@ -91,7 +93,7 @@ def estimate_R_cost_balance(
     -------
     float
         The value in ``R_grid`` that minimizes
-        :math:`\\left| C_u(R) - C_o(R) \\right|`.
+        $\left| C_u(R) - C_o(R) \right|$.
 
         If multiple values yield the same minimal gap, the first such value in
         the (filtered) grid is returned, except in the degenerate *perfect
@@ -108,12 +110,12 @@ def estimate_R_cost_balance(
     -----
     This helper is intentionally simple: it does **not** infer cost structure
     from business inputs, nor does it estimate per-item costs. It provides a
-    reproducible, data-driven way to select a reasonable global :math:`R` given
+    reproducible, data-driven way to select a reasonable global $R$ given
     realized outcomes and forecast behavior.
 
     References
     ----------
-    Electric Barometer Technical Note: Cost Ratio Estimation (Choosing :math:`R`).
+    Electric Barometer Technical Note: Cost Ratio Estimation (Choosing $R$).
     """
     y_true_arr = _to_1d_array(y_true, "y_true")
     y_pred_arr = _to_1d_array(y_pred, "y_pred")

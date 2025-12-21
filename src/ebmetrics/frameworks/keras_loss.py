@@ -23,26 +23,28 @@ __all__ = ["make_cwsl_keras_loss"]
 
 
 def make_cwsl_keras_loss(cu: float, co: float) -> Callable:
-    """
+    r"""
     Create a Keras-compatible loss implementing Cost-Weighted Service Loss (CWSL).
 
     This factory returns a TensorFlow/Keras loss function that mirrors the
-    numpy-based CWSL metric but is shaped to work in deep learning workflows.
+    NumPy-based CWSL metric but is shaped to work in deep learning workflows.
 
     The returned loss function has signature:
 
-    ``loss(y_true, y_pred) -> tensor``
+    ``loss(y_true, y_pred) -> tf.Tensor``
 
     and returns a tensor of shape ``(batch_size,)`` (one loss value per example),
     which Keras will then reduce according to the configured reduction mode.
 
     For each sample, CWSL is computed as:
 
-    .. math::
-
-        s &= \\max(0, y - \\hat{y}) \\\\
-        o &= \\max(0, \\hat{y} - y) \\\\
-        \\mathrm{CWSL} &= \\frac{c_u \\sum s + c_o \\sum o}{\\sum y}
+    $$
+    \begin{aligned}
+    s &= \max(0, y - \hat{y}) \\
+    o &= \max(0, \hat{y} - y) \\
+    \mathrm{CWSL} &= \frac{c_u \sum s + c_o \sum o}{\sum y}
+    \end{aligned}
+    $$
 
     where the summations reduce over the final axis (e.g., forecast horizon).
 
@@ -50,7 +52,6 @@ def make_cwsl_keras_loss(cu: float, co: float) -> Callable:
     ----------
     cu : float
         Per-unit cost of underbuild (shortfall). Must be strictly positive.
-
     co : float
         Per-unit cost of overbuild (excess). Must be strictly positive.
 
@@ -64,7 +65,6 @@ def make_cwsl_keras_loss(cu: float, co: float) -> Callable:
     ------
     ImportError
         If TensorFlow is not installed.
-
     ValueError
         If ``cu`` or ``co`` are not strictly positive.
 
