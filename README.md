@@ -1,5 +1,10 @@
 # Electric Barometer · Metrics (`eb-metrics`)
 
+![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)
+![Python Versions](https://img.shields.io/pypi/pyversions/eb-metrics)
+[![CI](https://github.com/Economistician/eb-metrics/actions/workflows/ci.yml/badge.svg)](https://github.com/Economistician/eb-metrics/actions/workflows/ci.yml)
+![PyPI](https://img.shields.io/pypi/v/eb-metrics)
+
 Asymmetric, readiness-oriented forecast evaluation metrics for operational decision systems.
 
 ---
