@@ -1,171 +1,76 @@
-# Electric Barometer Metrics (`eb-metrics`)
+# Electric Barometer · Metrics (`eb-metrics`)
 
-![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)
-![Python Versions](https://img.shields.io/badge/Python-3.10%2B-blue)
-[![Docs](https://img.shields.io/badge/docs-electric--barometer-blue)](https://economistician.github.io/eb-docs/)
-![Project Status](https://img.shields.io/badge/Status-Alpha-yellow)
-
-This repository contains the **reference Python implementation** of core metrics
-defined within the *Electric Barometer* research program.
-
-`eb-metrics` provides operationally meaningful forecasting metrics designed to
-support readiness-oriented evaluation under asymmetric cost, service constraints,
-and deployment considerations.
-
-Formal definitions, theoretical motivation, and conceptual framing for these
-metrics are maintained in the companion research repository:
-**`eb-papers`**.
+Asymmetric, readiness-oriented forecast evaluation metrics for operational decision systems.
 
 ---
 
-## Naming convention
+## Overview
 
-Electric Barometer packages follow standard Python packaging conventions:
+`eb-metrics` provides a set of forecast evaluation metrics designed for operational environments where the consequences of error are asymmetric and interval-level reliability matters. Traditional accuracy measures such as RMSE or MAE treat overforecasting and underforecasting symmetrically and summarize average deviation, often obscuring whether a forecast is suitable for real-world
+execution.
 
-- **Distribution names** (used with `pip install`) use hyphens  
-  e.g. `pip install eb-metrics`
-- **Python import paths** use underscores  
-  e.g. `import eb_metrics`
-
-This distinction is intentional and consistent across the Electric Barometer
-ecosystem.
+The metrics in this package evaluate forecasts in terms of service protection, shortfall behavior, and cost-weighted impact. They are designed for readiness-oriented assessment in settings such as production, staffing, inventory, logistics, and short-horizon demand planning, where even small shortfalls can create disproportionate operational disruption. `eb-metrics` serves as the foundational metric layer of the Electric Barometer ecosystem, providing interpretable primitives that support decision-aligned forecast comparison and selection.
 
 ---
 
-## What This Library Provides
+## Role in the Electric Barometer Ecosystem
 
-- **Asymmetric, cost-weighted loss metrics** (e.g., Cost-Weighted Service Loss)
-- **Service-level and readiness diagnostics** (NSL, UD, HR@τ, FRS)
-- **Classical regression metrics** for baseline comparison and diagnostics
-- **Cost-ratio and sensitivity utilities** for asymmetric evaluation
-- **Framework integrations** for TensorFlow / Keras and scikit-learn
+`eb-metrics` defines the core metric primitives used throughout the Electric Barometer ecosystem. It is responsible for implementing asymmetric loss, reliability, and readiness-oriented forecast evaluation measures in a form that is interpretable, composable, and operationally aligned.
 
-The library is lightweight, dependency-minimal, and fully unit-tested.
+This package focuses exclusively on metric definition and behavior. It does not manage data aggregation, evaluation workflows, model interfaces, feature construction, or integration testing. Those concerns are handled by adjacent layers in the ecosystem that apply, orchestrate, or consume these metrics in broader forecasting and decision-making pipelines.
 
----
-
-## Scope
-
-This repository focuses on **metric implementation**, not conceptual exposition.
-
-**In scope:**
-- Executable implementations of Electric Barometer metrics
-- Consistent, validated APIs for loss and service evaluation
-- Integration layers for common ML frameworks
-
-**Out of scope:**
-- Theoretical derivations and proofs
-- Governance or managerial frameworks
-- Empirical benchmarking studies
-- End-user tutorials
+By separating metric semantics from evaluation logic and execution concerns, `eb-metrics` provides a stable foundation that supports consistent, decision-aligned forecast assessment across heterogeneous operational contexts.
 
 ---
 
 ## Installation
 
-Once published, the package will be installable via PyPI:
+`eb-metrics` is distributed as a standard Python package.
 
 ```bash
 pip install eb-metrics
 ```
 
-For development or local use:
-
-```bash
-pip install -e .
-```
+The package supports Python 3.10 and later.
 
 ---
 
-## Quick Usage Example
+## Core Concepts
+
+- **Asymmetric error** — Overforecasting and underforecasting can have different operational consequences, so evaluation should reflect directional cost differences.
+- **Interval reliability** — In readiness-oriented systems, it matters how often forecasts meet demand within each interval, not just average error over time.
+- **Shortfall behavior** — Underbuilding events are operationally distinct; evaluation should capture both their frequency and their severity.
+- **Tolerance-based adequacy** — Many systems can absorb small deviations; reliability can be expressed as the frequency of “accurate enough” intervals.
+- **Readiness-oriented evaluation** — Forecast quality is assessed by execution feasibility and risk, not solely statistical deviation.
+
+---
+
+## Minimal Example
+
+The following example computes Cost-Weighted Service Loss (CWSL) for a single demand series using asymmetric penalties for underbuild and overbuild:
 
 ```python
-from eb_metrics.metrics.loss import cost_weighted_service_loss
+import numpy as np
+from eb_metrics import cwsl
 
-loss = cost_weighted_service_loss(
-    y_true=actual,
-    y_pred=forecast,
-    cost_ratio=R,
+# Realized demand and corresponding forecast
+y_true = np.array([20, 28, 32, 35, 40, 42])
+y_pred = np.array([22, 25, 29, 36, 37, 45])
+
+# Compute cost-weighted service loss
+loss = cwsl(
+    y_true=y_true,
+    y_pred=y_pred,
+    underbuild_cost=2.0,
+    overbuild_cost=1.0,
 )
+
+print(loss)
 ```
 
-Examples are illustrative; consult function docstrings for full parameter
-definitions and return semantics.
-
 ---
 
-## Public API Overview
+## License
 
-The primary public modules are:
-
-- `eb_metrics.metrics.loss`  
-  Asymmetric loss formulations (e.g., CWSL)
-
-- `eb_metrics.metrics.service`  
-  Service-level and readiness diagnostics (NSL, UD, HR@τ, FRS)
-
-- `eb_metrics.metrics.regression`  
-  Classical regression metrics
-
-- `eb_metrics.metrics.cost_ratio`  
-  Cost-ratio estimation and sensitivity utilities
-
-- `eb_metrics.frameworks.keras_loss`  
-  Keras-compatible loss wrappers
-
-- `eb_metrics.frameworks.sklearn_scorer`  
-  scikit-learn-compatible scoring interfaces
-
-Users are encouraged to import from these modules rather than internal helpers.
-
----
-
-## Conventions
-
-Electric Barometer metrics follow consistent operational conventions, including:
-
-- Explicit distinction between underbuild and overbuild
-- Asymmetric cost ratios expressed as \(R = c_u / c_o\)
-- Normalization relative to realized demand where applicable
-- Clear directionality (e.g., lower loss indicates better performance)
-
-Detailed semantic conventions are documented separately.
-
----
-
-## Development and Testing
-
-Tests are located under the `tests/` directory and mirror the package structure.
-
-To run tests:
-
-```bash
-pytest
-```
-
-Contributions should preserve alignment with definitions in `eb-papers`.
-
----
-
-## Relationship to Other EB Repositories
-
-- `eb-papers`  
-  Source of truth for conceptual definitions and evaluation philosophy.
-
-- `eb-metrics`  
-  Provides the metric implementations used during evaluation.
-
-- `eb-evaluation`  
-  Orchestrates evaluation workflows using adapted models.
-
-- `eb-adapters`  
-  Ensures heterogeneous models can be evaluated consistently.
-
-When discrepancies arise, conceptual intent in `eb-papers` should be treated as authoritative.
-
----
-
-## Status
-
-This package is under active development.
-Public APIs may evolve prior to the first stable release.
+BSD 3-Clause License.  
+© 2025 Kyle Corrie.
