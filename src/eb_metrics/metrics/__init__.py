@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 """
 Public metric API for the Electric Barometer ecosystem.
 
 The `eb_metrics.metrics` package provides a curated, stable import surface for
 Electric Barometer evaluation metrics.
 
-This package groups metrics into four main categories:
+This package groups metrics into three main categories:
 
 - **Asymmetric loss metrics** (`loss`)
   Cost-aware losses that encode directional operational asymmetry.
@@ -15,10 +17,6 @@ This package groups metrics into four main categories:
 - **Classical regression metrics** (`regression`)
   Standard symmetric error metrics used for baseline comparison.
 
-- **Cost-ratio utilities** (`cost_ratio`)
-  Helpers for selecting and analyzing the asymmetric cost ratio
-  :math:`R = c_u / c_o`.
-
 Conceptual definitions and interpretation of Electric Barometer metrics are
 documented in the companion research repository (`eb-papers`). This package is
 the executable reference implementation.
@@ -27,6 +25,9 @@ Notes
 -----
 Users are encouraged to import from `eb_metrics.metrics` or from the relevant
 submodule (e.g., `eb_metrics.metrics.service`) rather than internal helpers.
+
+Cost-ratio selection / tuning utilities (e.g., searching for an optimal
+R = c_u / c_o) live in `eb-optimization`, not `eb-metrics`.
 
 Examples
 --------
@@ -40,7 +41,6 @@ Or import from a submodule:
 >>> from eb_metrics.metrics.service import nsl
 """
 
-from .cost_ratio import estimate_R_cost_balance
 from .loss import cwsl
 from .regression import (
     mae,
@@ -76,6 +76,4 @@ __all__ = [
     "medae",
     "smape",
     "mase",
-    # Cost-ratio utilities
-    "estimate_R_cost_balance",
 ]

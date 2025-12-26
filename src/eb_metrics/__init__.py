@@ -8,7 +8,6 @@ This package exposes a clean, stable public API for:
 - Asymmetric cost-weighted loss metrics (e.g., Cost-Weighted Service Loss, CWSL)
 - Classical regression metrics (MAE, MSE, RMSE, MAPE, WMAPE, etc.)
 - Service-level and readiness metrics (NSL, UD, HR@τ, FRS)
-- Cost-ratio utilities (e.g., selecting R = c_u / c_o)
 
 Conceptual definitions and interpretation are documented in the companion
 research repository (`eb-papers`).
@@ -52,11 +51,6 @@ from .metrics.regression import (
 # ----------------------------------------------------------------------
 from .metrics.service import nsl, ud, hr_at_tau, frs, cwsl_sensitivity
 
-# ----------------------------------------------------------------------
-# Cost-ratio utilities
-# ----------------------------------------------------------------------
-from .metrics.cost_ratio import estimate_R_cost_balance
-
 
 def _resolve_version() -> str:
     """
@@ -99,6 +93,4 @@ __all__ = [
     "hr_at_tau",
     "frs",
     "cwsl_sensitivity",
-    # Cost-ratio utilities
-    "estimate_R_cost_balance",
 ]
