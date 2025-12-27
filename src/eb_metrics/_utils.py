@@ -56,9 +56,7 @@ def _to_1d_array(x: ArrayLike, name: str) -> np.ndarray:
     return arr
 
 
-def _broadcast_param(
-    param: float | ArrayLike, shape: tuple[int, ...], name: str
-) -> np.ndarray:
+def _broadcast_param(param: float | ArrayLike, shape: tuple[int, ...], name: str) -> np.ndarray:
     """
     Broadcast a scalar or 1D parameter to a target 1D shape.
 
