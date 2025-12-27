@@ -136,8 +136,7 @@ def ud(
     total_weight = float(w.sum())
     if total_weight <= 0:
         raise ValueError(
-            "UD is undefined: total sample_weight is zero. "
-            "Check your weighting scheme."
+            "UD is undefined: total sample_weight is zero. Check your weighting scheme."
         )
 
     return float(np.sum(w * shortfall) / total_weight)
