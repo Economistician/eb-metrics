@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Service-level and readiness metrics for the Electric Barometer ecosystem.
 
@@ -22,7 +20,9 @@ Design note
 - DataFrame-oriented plumbing and tuning workflows live in **eb-optimization**.
 """
 
-from typing import Dict, Sequence, Union
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -30,7 +30,7 @@ from numpy.typing import ArrayLike
 from .._utils import _broadcast_param, _handle_sample_weight, _to_1d_array
 from .loss import cwsl
 
-__all__ = ["nsl", "ud", "hr_at_tau", "frs", "cwsl_sensitivity"]
+__all__ = ["cwsl_sensitivity", "frs", "hr_at_tau", "nsl", "ud"]
 
 
 def nsl(
@@ -144,7 +144,7 @@ def ud(
 def hr_at_tau(
     y_true: ArrayLike,
     y_pred: ArrayLike,
-    tau: Union[float, ArrayLike],
+    tau: float | ArrayLike,
     sample_weight: ArrayLike | None = None,
 ) -> float:
     r"""
@@ -205,9 +205,9 @@ def cwsl_sensitivity(
     y_true: ArrayLike,
     y_pred: ArrayLike,
     R_list: Sequence[float] = (0.5, 1.0, 2.0, 3.0),
-    co: Union[float, ArrayLike] = 1.0,
+    co: float | ArrayLike = 1.0,
     sample_weight: ArrayLike | None = None,
-) -> Dict[float, float]:
+) -> dict[float, float]:
     r"""
     Evaluate CWSL across a grid of cost ratios (cost sensitivity analysis).
 
@@ -223,7 +223,7 @@ def cwsl_sensitivity(
 
     Non-positive R values are ignored. If no positive values remain, raises ValueError.
     """
-    results: Dict[float, float] = {}
+    results: dict[float, float] = {}
 
     for R in R_list:
         if R is None:
@@ -250,8 +250,8 @@ def cwsl_sensitivity(
 def frs(
     y_true: ArrayLike,
     y_pred: ArrayLike,
-    cu: Union[float, ArrayLike],
-    co: Union[float, ArrayLike],
+    cu: float | ArrayLike,
+    co: float | ArrayLike,
     sample_weight: ArrayLike | None = None,
 ) -> float:
     r"""

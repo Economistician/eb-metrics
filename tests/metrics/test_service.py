@@ -4,10 +4,10 @@ import numpy as np
 import pytest
 
 from eb_metrics.metrics.service import (
+    frs,
+    hr_at_tau,
     nsl,
     ud,
-    hr_at_tau,
-    frs,
 )
 
 

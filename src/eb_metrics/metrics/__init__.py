@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Public metric API for the Electric Barometer ecosystem.
 
@@ -41,12 +39,14 @@ Or import from a submodule:
 >>> from eb_metrics.metrics.service import nsl
 """
 
+from __future__ import annotations
+
 from .loss import cwsl
 from .regression import (
     mae,
+    mape,
     mase,
     medae,
-    mape,
     mse,
     msle,
     rmse,
@@ -56,24 +56,25 @@ from .regression import (
 )
 from .service import cwsl_sensitivity, frs, hr_at_tau, nsl, ud
 
+######################################
+# Public API
+######################################
+
 __all__ = [
-    # Asymmetric loss
     "cwsl",
-    # Service/readiness
-    "nsl",
-    "ud",
-    "hr_at_tau",
-    "frs",
     "cwsl_sensitivity",
-    # Classical regression
+    "frs",
+    "hr_at_tau",
     "mae",
-    "mse",
-    "rmse",
     "mape",
-    "wmape",
-    "msle",
-    "rmsle",
-    "medae",
-    "smape",
     "mase",
+    "medae",
+    "mse",
+    "msle",
+    "nsl",
+    "rmse",
+    "rmsle",
+    "smape",
+    "ud",
+    "wmape",
 ]

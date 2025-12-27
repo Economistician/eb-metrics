@@ -3,15 +3,15 @@ import pytest
 
 from eb_metrics.metrics.regression import (
     mae,
-    mse,
-    rmse,
     mape,
-    wmape,
-    msle,
-    rmsle,
-    medae,
-    smape,
     mase,
+    medae,
+    mse,
+    msle,
+    rmse,
+    rmsle,
+    smape,
+    wmape,
 )
 
 

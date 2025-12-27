@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Classical regression and forecasting error metrics.
 
@@ -12,21 +10,23 @@ Conceptual Electric Barometer metrics (e.g., CWSL, NSL) are implemented in other
 modules. The functions here are intentionally lightweight and dependency-minimal.
 """
 
-__all__ = [
-    "mae",
-    "mse",
-    "rmse",
-    "mape",
-    "wmape",
-    "msle",
-    "rmsle",
-    "medae",
-    "smape",
-    "mase",
-]
+from __future__ import annotations
 
 import numpy as np
 from numpy.typing import ArrayLike
+
+__all__ = [
+    "mae",
+    "mape",
+    "mase",
+    "medae",
+    "mse",
+    "msle",
+    "rmse",
+    "rmsle",
+    "smape",
+    "wmape",
+]
 
 
 # ----------------------------------------------------------------------

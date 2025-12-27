@@ -15,23 +15,22 @@ companion research repository (`eb-papers`).
 
 __all__ = ["cwsl"]
 
-from typing import Union
 
 import numpy as np
 from numpy.typing import ArrayLike
 
 from .._utils import (
-    _to_1d_array,
     _broadcast_param,
     _handle_sample_weight,
+    _to_1d_array,
 )
 
 
 def cwsl(
     y_true: ArrayLike,
     y_pred: ArrayLike,
-    cu: Union[float, ArrayLike],
-    co: Union[float, ArrayLike],
+    cu: float | ArrayLike,
+    co: float | ArrayLike,
     sample_weight: ArrayLike | None = None,
 ) -> float:
     r"""

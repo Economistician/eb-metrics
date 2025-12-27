@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Keras / TensorFlow integration for Electric Barometer metrics.
 
@@ -17,7 +15,9 @@ Notes
   research repository (`eb-papers`).
 """
 
-from typing import Callable
+from __future__ import annotations
+
+from collections.abc import Callable
 
 __all__ = ["make_cwsl_keras_loss"]
 

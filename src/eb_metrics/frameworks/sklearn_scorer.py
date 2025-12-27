@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 scikit-learn integration for Electric Barometer metrics.
 
@@ -18,7 +16,9 @@ Notes
   the companion research repository (`eb-papers`).
 """
 
-from typing import Callable
+from __future__ import annotations
+
+from collections.abc import Callable
 
 import numpy as np
 from numpy.typing import ArrayLike

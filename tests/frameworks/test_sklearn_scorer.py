@@ -7,8 +7,8 @@ import sys
 import numpy as np
 import pytest
 
-from eb_metrics.metrics import cwsl
 from eb_metrics.frameworks.sklearn_scorer import cwsl_loss, cwsl_scorer
+from eb_metrics.metrics import cwsl
 
 
 def test_cwsl_loss_matches_core_metric():

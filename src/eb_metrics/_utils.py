@@ -20,8 +20,6 @@ Downstream modules should prefer importing from `eb_metrics.metrics` or
 
 from __future__ import annotations
 
-from typing import Optional, Union
-
 import numpy as np
 from numpy.typing import ArrayLike
 
@@ -59,7 +57,7 @@ def _to_1d_array(x: ArrayLike, name: str) -> np.ndarray:
 
 
 def _broadcast_param(
-    param: Union[float, ArrayLike], shape: tuple[int, ...], name: str
+    param: float | ArrayLike, shape: tuple[int, ...], name: str
 ) -> np.ndarray:
     """
     Broadcast a scalar or 1D parameter to a target 1D shape.
@@ -110,7 +108,7 @@ def _broadcast_param(
 
 
 def _handle_sample_weight(
-    sample_weight: Optional[ArrayLike],
+    sample_weight: ArrayLike | None,
     length: int,
     *,
     dtype: type = float,

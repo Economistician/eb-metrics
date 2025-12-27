@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 `eb_metrics` — core metric library for the Electric Barometer ecosystem.
 
@@ -23,33 +21,24 @@ Internal helpers live in private modules (prefixed with "_") and are not part of
 the public API.
 """
 
+from __future__ import annotations
+
 from importlib.metadata import PackageNotFoundError, version
 
-# ----------------------------------------------------------------------
-# Loss metrics (asymmetric)
-# ----------------------------------------------------------------------
 from .metrics.loss import cwsl
-
-# ----------------------------------------------------------------------
-# Classical regression metrics
-# ----------------------------------------------------------------------
 from .metrics.regression import (
     mae,
-    mse,
-    rmse,
     mape,
-    wmape,
-    msle,
-    rmsle,
-    medae,
-    smape,
     mase,
+    medae,
+    mse,
+    msle,
+    rmse,
+    rmsle,
+    smape,
+    wmape,
 )
-
-# ----------------------------------------------------------------------
-# Service-level and readiness metrics
-# ----------------------------------------------------------------------
-from .metrics.service import nsl, ud, hr_at_tau, frs, cwsl_sensitivity
+from .metrics.service import cwsl_sensitivity, frs, hr_at_tau, nsl, ud
 
 
 def _resolve_version() -> str:
@@ -74,23 +63,20 @@ __version__ = _resolve_version()
 
 __all__ = [
     "__version__",
-    # Loss
     "cwsl",
-    # Classical regression
-    "mae",
-    "mse",
-    "rmse",
-    "mape",
-    "wmape",
-    "msle",
-    "rmsle",
-    "medae",
-    "smape",
-    "mase",
-    # Service-level
-    "nsl",
-    "ud",
-    "hr_at_tau",
-    "frs",
     "cwsl_sensitivity",
+    "frs",
+    "hr_at_tau",
+    "mae",
+    "mape",
+    "mase",
+    "medae",
+    "mse",
+    "msle",
+    "nsl",
+    "rmse",
+    "rmsle",
+    "smape",
+    "ud",
+    "wmape",
 ]
