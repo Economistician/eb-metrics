@@ -32,9 +32,7 @@ from numpy.typing import ArrayLike
 # ----------------------------------------------------------------------
 # Internal utilities
 # ----------------------------------------------------------------------
-def _validate_shapes(
-    y_true: ArrayLike, y_pred: ArrayLike
-) -> tuple[np.ndarray, np.ndarray]:
+def _validate_shapes(y_true: ArrayLike, y_pred: ArrayLike) -> tuple[np.ndarray, np.ndarray]:
     """Convert inputs to float arrays and require identical shapes."""
     y_true_arr = np.asarray(y_true, dtype=float)
     y_pred_arr = np.asarray(y_pred, dtype=float)

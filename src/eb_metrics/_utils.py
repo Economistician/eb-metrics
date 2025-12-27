@@ -50,9 +50,7 @@ def _to_1d_array(x: ArrayLike, name: str) -> np.ndarray:
     arr = np.asarray(x, dtype=float)
 
     if arr.ndim != 1:
-        raise ValueError(
-            f"{name} must be a 1D array; got ndim={arr.ndim} and shape={arr.shape}"
-        )
+        raise ValueError(f"{name} must be a 1D array; got ndim={arr.ndim} and shape={arr.shape}")
 
     if not np.all(np.isfinite(arr)):
         raise ValueError(f"{name} must contain only finite values (no NaN/inf).")
@@ -91,9 +89,7 @@ def _broadcast_param(
         length, or if non-finite values are present.
     """
     if len(shape) != 1:
-        raise ValueError(
-            f"{name} broadcasting only supports 1D shapes; got shape={shape}"
-        )
+        raise ValueError(f"{name} broadcasting only supports 1D shapes; got shape={shape}")
 
     length = int(shape[0])
     arr = np.asarray(param, dtype=float)

@@ -81,8 +81,7 @@ def nsl(
     total_weight = float(w.sum())
     if total_weight <= 0:
         raise ValueError(
-            "NSL is undefined: total sample_weight is zero. "
-            "Check your weighting scheme."
+            "NSL is undefined: total sample_weight is zero. Check your weighting scheme."
         )
 
     return float(np.sum(w * hits) / total_weight)
@@ -196,8 +195,7 @@ def hr_at_tau(
     total_weight = float(w.sum())
     if total_weight <= 0:
         raise ValueError(
-            "HR@τ is undefined: total sample_weight is zero. "
-            "Check your weighting scheme."
+            "HR@τ is undefined: total sample_weight is zero. Check your weighting scheme."
         )
 
     return float(np.sum(w * hits) / total_weight)
@@ -244,9 +242,7 @@ def cwsl_sensitivity(
         results[Rf] = float(value)
 
     if not results:
-        raise ValueError(
-            "No valid R values in R_list (must contain at least one positive value)."
-        )
+        raise ValueError("No valid R values in R_list (must contain at least one positive value).")
 
     return results
 
