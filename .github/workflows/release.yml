@@ -8,6 +8,9 @@ on:
 
 jobs:
   release:
+    name: Call Centralized PyPI Release
+    permissions:
+      contents: read
     uses: Economistician/eb-integration/.github/workflows/pypi-release.yml@main
     with:
       python-version: "3.12"
