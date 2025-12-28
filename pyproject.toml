@@ -3,7 +3,7 @@
 ######################################
 [project]
 name = "eb-metrics"
-version = "0.2.2"
+version = "0.2.3"
 description = "Core Electric Barometer error metrics, including asymmetric CWSL and standard forecast loss functions."
 readme = "README.md"
 requires-python = ">=3.10"
