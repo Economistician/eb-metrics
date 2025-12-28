@@ -3,8 +3,8 @@ name: Release to PyPI
 on:
   push:
     tags:
-      - "v*"  # Trigger the release on version tags
-  workflow_dispatch:  # Allow manual triggering
+      - "v*"
+  workflow_dispatch: 
 
 jobs:
   release:
@@ -12,3 +12,6 @@ jobs:
     with:
       python-version: "3.12"
       build-command: "python -m build --sdist --wheel"
+    secrets:
+      PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
