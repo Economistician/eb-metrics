@@ -242,9 +242,7 @@ def cwsl_sensitivity(
         results[Rf] = float(value)
 
     if not results:
-        raise ValueError(
-            "No valid R values in R_list (must contain at least one positive value)."
-        )
+        raise ValueError("No valid R values in R_list (must contain at least one positive value).")
 
     return results
 
