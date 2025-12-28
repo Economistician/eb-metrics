@@ -7,7 +7,7 @@ version = "0.2.8"
 description = "Core Electric Barometer error metrics, including asymmetric CWSL and standard forecast loss functions."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "BSD-3-Clause" }
+license = "BSD-3-Clause"
 
 authors = [
   { name = "Kyle Corrie (Economistician)", email = "kcorrie@economistician.com" }
@@ -62,7 +62,7 @@ dev = [
   "pytest-cov>=5.0",
   "ruff>=0.0.1",
   "pyright>=1.1",
-  "twine>=4.0"
+  "twine>=4.0",
 ]
 
 # Framework integrations
@@ -76,8 +76,23 @@ tf = [
 
 # Combined extra to satisfy the "extras: all" CI contract.
 # This ensures that when CI calls for "all", it gets frameworks + test tools.
+#
+# NOTE:
+# Avoid self-referential extras like "eb-metrics[sklearn,tf,dev]" inside optional-dependencies.
+# Instead, define "all" as the explicit union of the desired requirements.
 all = [
-  "eb-metrics[sklearn,tf,dev]"
+  # Framework integrations
+  "scikit-learn>=1.3",
+  "tensorflow>=2.13",
+
+  # CI / test-only dependencies
+  "pytest>=8.0",
+
+  # Local developer tooling
+  "pytest-cov>=5.0",
+  "ruff>=0.0.1",
+  "pyright>=1.1",
+  "twine>=4.0",
 ]
 
 ######################################
