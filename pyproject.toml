@@ -60,6 +60,9 @@ test = [
 dev = [
   "pytest>=8.0",
   "pytest-cov>=5.0",
+  "ruff>=0.0.1",      # Added Ruff for linting and formatting
+  "pyright>=1.1",     # Added Pyright for type checking
+  "twine>=4.0"        # Added Twine for publishing to PyPI
 ]
 
 # Framework integrations

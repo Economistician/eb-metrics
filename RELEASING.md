@@ -1,206 +1,81 @@
-# Electric Barometer – Release Procedure
 
-This document defines the **canonical release process** for all Electric Barometer
-repositories. It is written in Markdown syntax but intentionally stored as a `.txt`
-file for portability and explicitness.
+# Release Process for `eb-metrics`
 
----
-
-## Supported Repositories
-
-This process applies to:
-
-- `eb-metrics`
-- `eb-evaluation`
-- `eb-adapters`
-- `eb-features`
-- `electric-barometer` (umbrella package)
-
-All repositories follow the **same release spine** with only minor substitutions
-(package name, version, smoke import).
+A guide for managing and automating the release process of `eb-metrics` to PyPI, including versioning, release triggers, and post-release validation.
 
 ---
 
-## Release Preconditions
-
-Before starting a release, verify:
-
-- `git status` is clean
-- All tests pass locally
-- `pyproject.toml` version is correct and final
-- Dependency bands are already aligned
-- You are on `main`
-- You have a valid PyPI API token
+## Overview
+This document outlines the process for releasing a new version of `eb-metrics` to PyPI, including how to trigger the release, versioning guidelines, and post-release validation.
 
 ---
 
-## Step 1 – Version Confirmation
+## Versioning
+We follow **Semantic Versioning** (MAJOR.MINOR.PATCH) for versioning our packages. When making changes to `eb-metrics`, please update the version as follows:
+- **Patch version**: for bug fixes or small improvements.
+- **Minor version**: for new features that are backward-compatible.
+- **Major version**: for breaking changes.
 
-Confirm the version declared in `pyproject.toml`:
-
-```toml
-[project]
-version = "X.Y.Z"
-```
-
-The version **must not already exist** on PyPI.
-
-Check existing versions:
-
-```bash
-python -m pip index versions <package-name>
-```
+### Versioning Example:
+- From `1.0.0` → `1.1.0` (minor update with new features).
+- From `1.1.0` → `1.1.1` (patch update with bug fixes).
 
 ---
 
-## Step 2 – Clean Build Artifacts
+## Triggering a Release
+Releases are triggered by creating a **version tag** in the repository.
 
-Always start from a clean state:
-
-```bash
-Remove-Item -Recurse -Force dist, build, *.egg-info -ErrorAction SilentlyContinue
-```
-
----
-
-## Step 3 – Build Distributions
-
-Build both sdist and wheel:
-
-```bash
-python -m build
-```
-
-Expected output:
-- `dist/<package>-X.Y.Z.tar.gz`
-- `dist/<package>-X.Y.Z-py3-none-any.whl`
+### Steps:
+1. **Create a new version tag**:
+   ```bash
+   git tag v<new_version> -m "Release <new_version>"
+   git push origin v<new_version>
+   ```
+2. This will automatically trigger the **`pypi-release.yml`** workflow, which will handle the build and publishing process.
 
 ---
 
-## Step 4 – Validate Distributions
-
-Before uploading, validate artifacts:
-
-```bash
-python -m twine check dist/*
-```
-
-This **must pass** with no errors.
+## Pre-release Checklist
+Before triggering a release, please ensure the following:
+- [ ] All tests pass.
+- [ ] Version has been bumped according to [Semantic Versioning](#versioning).
+- [ ] Changelog is updated with new features, fixes, or breaking changes.
+- [ ] Documentation is up to date.
 
 ---
 
-## Step 5 – Upload to PyPI
-
-Upload artifacts to PyPI:
-
-```bash
-python -m twine upload dist/*
-```
-
-Notes:
-- PyPI **does not allow file overwrites**
-- If upload fails due to existing files, **bump the version**
-- Ignore trusted publishing warnings unless configured
+## Automated Workflow
+The **`pypi-release.yml`** workflow performs the following steps:
+1. **Build** the source distribution and wheel files.
+2. **Publish** the package to **PyPI**.
+3. After publishing, the **`pypi-smoke.yml`** workflow will be triggered to verify the release by installing it from PyPI and running basic checks.
 
 ---
 
-## Step 6 – Tag the Release
-
-Create and push a Git tag matching the version:
-
-```bash
-git tag vX.Y.Z
-git push origin vX.Y.Z
-```
-
-Tags must always correspond to **published artifacts**.
+## Post-release
+Once the release is pushed to PyPI, the **`pypi-smoke.yml`** workflow will:
+- Install the package from PyPI.
+- Run basic import and functionality checks to ensure the release works as expected.
 
 ---
 
-## Step 7 – Install Verification
-
-Force-install the released version directly from PyPI:
-
-```bash
-python -m pip install --no-cache-dir -U -i https://pypi.org/simple <package-name>==X.Y.Z
-```
-
-Confirm installation:
-
-```bash
-python -m pip show <package-name>
-```
+## Emergency Procedures
+If an issue arises after the release:
+1. Verify the issue in the **`pypi-smoke.yml`** logs.
+2. If necessary, create a new patch version and re-release it.
+3. Tag the new version and push it, triggering the release process again.
 
 ---
 
-## Step 8 – Smoke Import Test
-
-Run a minimal import test:
-
-```bash
-python -c "import <package>; print('import OK')"
-```
-
-For umbrella release validation:
-
-```bash
-python -c "import eb_metrics, eb_evaluation, eb_adapters, eb_features, electric_barometer; print('EB smoke OK')"
-```
+## Rollback Process
+If a critical issue is found in a release after it's been pushed to PyPI:
+1. Identify the issue and confirm it with the **`pypi-smoke.yml`** logs.
+2. Create a hotfix by bumping the patch version (e.g., `1.0.0` → `1.0.1`).
+3. Push the hotfix version and tag it.
+4. Trigger the release pipeline and monitor the post-release smoke tests.
 
 ---
 
-## Step 9 – Dependency Integrity Check
-
-Verify the environment has no conflicts:
-
-```bash
-python -m pip check
-```
-
-Expected output:
-
-```
-No broken requirements found.
-```
-
----
-
-## Versioning Rules
-
-- Patch releases (`X.Y.Z+1`) for:
-  - Dependency band changes
-  - Metadata fixes
-  - Packaging corrections
-
-- Minor releases (`X.Y+1.0`) for:
-  - New features
-  - New public APIs
-
-- Major releases (`X+1.0.0`) for:
-  - Breaking API changes
-
----
-
-## Non-Negotiable Rules
-
-- Never reuse a PyPI version
-- Never retag an existing version
-- Never publish without testing install
-- Never publish umbrella until all leaves are live
-
----
-
-## Final Checklist
-
-- [ ] Clean git state
-- [ ] Build succeeds
-- [ ] Twine check passes
-- [ ] PyPI upload succeeds
-- [ ] Git tag pushed
-- [ ] pip install verified
-- [ ] Smoke import passes
-- [ ] pip check clean
-
----
-
-**This document is the single source of truth for Electric Barometer releases.**
+## Links
+- [PyPI Guidelines](https://pypi.org/)
+- [GitHub Actions Workflow Documentation](https://docs.github.com/en/actions)
