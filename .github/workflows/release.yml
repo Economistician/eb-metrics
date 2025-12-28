@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   release:
@@ -12,6 +12,4 @@ jobs:
     with:
       python-version: "3.12"
       build-command: "python -m build --sdist --wheel"
-    secrets:
-      PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
-      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+    secrets: inherit
