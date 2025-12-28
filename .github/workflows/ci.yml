@@ -9,8 +9,9 @@ jobs:
   ci:
     uses: Economistician/eb-integration/.github/workflows/pr-gate.yml@main
     with:
-      python-version: "3.13"
       os: '["ubuntu-latest", "windows-latest"]'
       python_versions: '["3.11", "3.12", "3.13"]'
+      tooling_python_version: "3.13"
       run_precommit: true
       enable_typecheck: true
+      import_module: "eb_metrics"
