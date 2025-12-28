@@ -4,9 +4,24 @@ on:
   pull_request:
     branches:
       - main
+    # Only trigger if relevant files change
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+  workflow_dispatch: # Allows manual "Run workflow" trigger
+
+# Cancel previous runs if you push new code to the same PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   ci:
+    # Use 'permissions' to be explicit for the called workflow
+    permissions:
+      contents: read
+      packages: read
     uses: Economistician/eb-integration/.github/workflows/pr-gate.yml@main
     with:
       os: '["ubuntu-latest", "windows-latest"]'
