@@ -225,6 +225,11 @@ def cwsl_sensitivity(
     """
     results: dict[float, float] = {}
 
+    # Convert co to a numeric array to satisfy type checkers for the multiplication
+    co_arr = np.asanyarray(co)
+    if np.any(co_arr < 0):
+        raise ValueError("co must be non-negative.")
+
     for R in R_list:
         if R is None:
             continue
@@ -235,8 +240,8 @@ def cwsl_sensitivity(
         value = cwsl(
             y_true=y_true,
             y_pred=y_pred,
-            cu=Rf * co,
-            co=co,
+            cu=Rf * co_arr,
+            co=co_arr,
             sample_weight=sample_weight,
         )
         results[Rf] = float(value)
