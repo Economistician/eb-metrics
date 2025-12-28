@@ -77,5 +77,5 @@ print(loss)
 
 ## License
 
-BSD 3-Clause License.  
+BSD 3-Clause License.
 © 2025 Kyle Corrie.

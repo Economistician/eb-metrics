@@ -18,9 +18,9 @@ logistics, inventory planning, and other service-constrained systems.
 
 Electric Barometer packages follow a consistent naming convention:
 
-- **Distribution names** (used with `pip install`) use hyphens  
+- **Distribution names** (used with `pip install`) use hyphens
   e.g. `pip install eb-metrics`
-- **Python import paths** use underscores  
+- **Python import paths** use underscores
   e.g. `import eb_metrics`
 
 This follows standard Python packaging practices and avoids ambiguity between
@@ -34,7 +34,7 @@ package names and module imports.
 Metrics that explicitly encode operational cost asymmetry between shortfall
 and overbuild.
 
-- **Cost-Weighted Service Loss (CWSL)**  
+- **Cost-Weighted Service Loss (CWSL)**
   A demand-normalized, directionally-aware loss that generalizes weighted MAPE
   by assigning explicit costs to underbuild and overbuild.
 
@@ -44,10 +44,10 @@ and overbuild.
 Metrics that evaluate forecast behavior from a *service reliability* and
 *operational readiness* perspective.
 
-- **No Shortfall Level (NSL)** — frequency of avoiding shortfall  
-- **Underbuild Depth (UD)** — severity of shortfalls when they occur  
-- **Hit Rate within Tolerance (HR@τ)** — accuracy within operational bounds  
-- **Forecast Readiness Score (FRS)** — composite readiness metric combining NSL and CWSL  
+- **No Shortfall Level (NSL)** — frequency of avoiding shortfall
+- **Underbuild Depth (UD)** — severity of shortfalls when they occur
+- **Hit Rate within Tolerance (HR@τ)** — accuracy within operational bounds
+- **Forecast Readiness Score (FRS)** — composite readiness metric combining NSL and CWSL
 
 ---
 
@@ -55,9 +55,9 @@ Metrics that evaluate forecast behavior from a *service reliability* and
 Standard symmetric error metrics included for baseline comparison and diagnostic
 validation.
 
-- MAE, MSE, RMSE  
-- MAPE, WMAPE, sMAPE  
-- MedAE, MASE, MSLE, RMSLE  
+- MAE, MSE, RMSE
+- MAPE, WMAPE, sMAPE
+- MedAE, MASE, MSLE, RMSLE
 
 ---
 
@@ -72,7 +72,7 @@ common machine-learning workflows.
 
 ## Documentation structure
 
-- **API Reference**  
+- **API Reference**
   All metric and framework documentation is generated automatically from
   NumPy-style docstrings in the source code using `mkdocstrings`.
 
