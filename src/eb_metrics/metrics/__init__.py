@@ -41,7 +41,11 @@ Or import from a submodule:
 
 from __future__ import annotations
 
-from .loss import cwsl
+from .loss import (
+    PiecewiseStateAsymmetry,
+    cwsl,
+    piecewise_state_asymmetric_squared_error,
+)
 from .regression import (
     mae,
     mape,
@@ -61,6 +65,7 @@ from .service import cwsl_sensitivity, frs, hr_at_tau, nsl, ud
 ######################################
 
 __all__ = [
+    "PiecewiseStateAsymmetry",
     "cwsl",
     "cwsl_sensitivity",
     "frs",
@@ -72,6 +77,7 @@ __all__ = [
     "mse",
     "msle",
     "nsl",
+    "piecewise_state_asymmetric_squared_error",
     "rmse",
     "rmsle",
     "smape",

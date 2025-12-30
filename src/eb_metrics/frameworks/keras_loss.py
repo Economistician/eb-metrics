@@ -18,8 +18,19 @@ Notes
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Any, Protocol, cast, runtime_checkable
 
 __all__ = ["make_cwsl_keras_loss"]
+
+
+@runtime_checkable
+class _KerasBackendLike(Protocol):
+    def epsilon(self) -> float: ...
+
+
+@runtime_checkable
+class _KerasLike(Protocol):
+    backend: _KerasBackendLike
 
 
 def make_cwsl_keras_loss(cu: float, co: float) -> Callable:
@@ -127,7 +138,8 @@ def make_cwsl_keras_loss(cu: float, co: float) -> Callable:
         total_demand = tf.reduce_sum(y_true_f, axis=-1)
 
         # Avoid division by zero by clamping with epsilon
-        eps = tf.keras.backend.epsilon()
+        keras_mod = cast(Any, tf).keras
+        eps = cast(_KerasLike, keras_mod).backend.epsilon()
         total_demand_safe = tf.maximum(total_demand, eps)
 
         return total_cost / total_demand_safe

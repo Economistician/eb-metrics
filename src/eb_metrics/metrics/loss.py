@@ -13,8 +13,14 @@ Conceptual definitions, motivation, and interpretation are documented in the
 companion research repository (`eb-papers`).
 """
 
-__all__ = ["cwsl"]
+__all__ = [
+    "PiecewiseStateAsymmetry",
+    "cwsl",
+    "piecewise_state_asymmetric_squared_error",
+]
 
+
+from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -160,3 +166,73 @@ def cwsl(
         "CWSL is undefined: total (weighted) demand is zero while total (weighted) "
         "cost is positive. Check your data slice or weighting scheme."
     )
+
+
+@dataclass(frozen=True)
+class PiecewiseStateAsymmetry:
+    """
+    State-dependent asymmetric cost profile.
+
+    The "state" is y_true (e.g., utilization). Each observation is assigned a
+    state weight based on the band it falls into. Under-forecasting (y_pred < y_true)
+    is additionally penalized relative to over-forecasting.
+
+    Example:
+        state_upper_bounds=(0.75, 0.85, 1.01)
+        state_weights=(1.0, 2.0, 5.0)
+
+    defines three bands:
+        y_true <= 0.75 -> weight 1.0
+        0.75 < y_true <= 0.85 -> weight 2.0
+        0.85 < y_true <= 1.01 -> weight 5.0
+    """
+
+    state_upper_bounds: tuple[float, ...]
+    state_weights: tuple[float, ...]
+    under_mult: float = 3.0
+    over_mult: float = 1.0
+
+    def __post_init__(self) -> None:
+        if len(self.state_upper_bounds) != len(self.state_weights):
+            raise ValueError("state_upper_bounds and state_weights must have the same length.")
+        if any(
+            b2 <= b1
+            for b1, b2 in zip(self.state_upper_bounds, self.state_upper_bounds[1:], strict=False)
+        ):
+            raise ValueError("state_upper_bounds must be strictly increasing.")
+        if self.under_mult <= 0 or self.over_mult <= 0:
+            raise ValueError("Multipliers must be positive.")
+
+
+def piecewise_state_asymmetric_squared_error(
+    y_true: ArrayLike,
+    y_pred: ArrayLike,
+    profile: PiecewiseStateAsymmetry,
+) -> np.ndarray:
+    """
+    Compute a state-dependent asymmetric squared error.
+
+    - State weights are determined by y_true's band.
+    - Under-forecasting (y_pred < y_true) is multiplied by profile.under_mult.
+    - Over-forecasting is multiplied by profile.over_mult.
+
+    Returns per-observation costs (broadcasted shape).
+    """
+    y = np.asarray(y_true, dtype=float)
+    yhat = np.asarray(y_pred, dtype=float)
+
+    err = yhat - y  # negative => under-forecast
+
+    bounds = np.asarray(profile.state_upper_bounds, dtype=float)
+    weights = np.asarray(profile.state_weights, dtype=float)
+
+    # Band index by upper bounds. See docstring for band semantics.
+    band_idx = np.searchsorted(bounds, y, side="right")
+
+    # Clamp to valid range: [0, len(weights) - 1]
+    band_idx = np.clip(band_idx, 0, len(weights) - 1)
+
+    w_state = weights[band_idx]
+    w_asym = np.where(err < 0, profile.under_mult, profile.over_mult)
+
+    return w_state * w_asym * (err**2)

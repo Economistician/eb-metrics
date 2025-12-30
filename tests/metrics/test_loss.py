@@ -1,7 +1,11 @@
 import numpy as np
 import pytest
 
-from eb_metrics.metrics import cwsl
+from eb_metrics.metrics import (
+    PiecewiseStateAsymmetry,
+    cwsl,
+    piecewise_state_asymmetric_squared_error,
+)
 
 
 def test_cwsl_two_interval_example():
@@ -105,3 +109,42 @@ def test_cwsl_zero_demand_positive_cost_raises():
 
     with pytest.raises(ValueError):
         cwsl(y_true=y_true, y_pred=y_pred, cu=2.0, co=1.0)
+
+
+def test_piecewise_state_asymmetric_squared_error_applies_state_weights_and_under_asymmetry():
+    """
+    Verify that:
+    - State weights are chosen by y_true band.
+    - Under-forecasting (y_pred < y_true) is multiplied by under_mult.
+    - Over-forecasting is multiplied by over_mult.
+
+    Using three states with identical error magnitude |err|=0.1:
+      y_true=0.70 (weight 1.0), y_pred=0.80 -> over
+      y_true=0.80 (weight 2.0), y_pred=0.90 -> over
+      y_true=0.90 (weight 5.0), y_pred=0.80 -> under
+
+    Base squared error = 0.01.
+    Over costs: weight * 1.0 * 0.01
+    Under costs: weight * 3.0 * 0.01
+    """
+    profile = PiecewiseStateAsymmetry(
+        state_upper_bounds=(0.75, 0.85, 1.01),
+        state_weights=(1.0, 2.0, 5.0),
+        under_mult=3.0,
+        over_mult=1.0,
+    )
+
+    y_true = np.array([0.70, 0.80, 0.90])
+    y_pred = np.array([0.80, 0.90, 0.80])
+
+    costs = piecewise_state_asymmetric_squared_error(y_true=y_true, y_pred=y_pred, profile=profile)
+
+    expected = np.array(
+        [
+            1.0 * 1.0 * 0.01,  # over, low state
+            2.0 * 1.0 * 0.01,  # over, mid state
+            5.0 * 3.0 * 0.01,  # under, high state
+        ]
+    )
+
+    assert np.allclose(costs, expected)
