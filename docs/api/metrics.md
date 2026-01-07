@@ -1,9 +1,7 @@
-# Metrics API
+# Metrics
 
-This section documents the core metric implementations provided by
-**eb-metrics**. All content below is generated automatically from
-NumPy-style docstrings in the source code.
+This section documents the core metric implementations provided by `eb-metrics`.
 
-## Metrics Package
+These metrics are designed to support **cost-aware**, **asymmetric**, and **readiness-oriented** evaluation of forecasts and decisions.
 
 ::: eb_metrics.metrics

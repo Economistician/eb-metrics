@@ -1,12 +1,7 @@
-# Framework Integrations
+# Framework integrations
 
-This section documents framework-specific integration utilities provided by
-**eb-metrics**, enabling Electric Barometer metrics to be used directly in
-model training and selection workflows.
+This section documents adapters that integrate `eb-metrics` metrics with common machine learning frameworks.
 
-All content below is generated automatically from NumPy-style docstrings
-in the source code.
-
-## Framework Utilities
+These adapters allow Electric Barometer metrics to be used as loss functions, scorers, or evaluation hooks without modifying model training or evaluation pipelines.
 
 ::: eb_metrics.frameworks
