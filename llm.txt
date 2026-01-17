@@ -1,0 +1,109 @@
+REPOSITORY: eb-metrics
+
+ROLE
+This repository implements the core metric primitives for the Electric Barometer
+ecosystem.
+
+It defines deterministic, interpretable evaluation metrics and closely related
+calibration / sensitivity helpers (e.g., cost-ratio and tolerance grids) that
+establish evaluation context.
+
+This repository defines metric behavior and mathematical semantics.
+It does not orchestrate workflows, govern decisions, tune policies, or adjust
+forecasts.
+
+---
+
+PRIMARY RESPONSIBILITIES
+
+- Provide stable, minimal, NumPy-first implementations of EB metric primitives:
+  - asymmetric / cost-aware loss (e.g., CWSL)
+  - classical regression metrics (MAE, MSE, RMSE, etc.)
+  - service / readiness metrics (NSL, UD, HR@τ, FRS)
+- Provide deterministic calibration / sensitivity helpers that define evaluation
+  context (e.g., CWSL sensitivity across cost ratios; HR@τ tolerance evaluation)
+- Provide lightweight framework integrations (optional wrappers only):
+  - sklearn scorer wrappers
+  - keras loss wrappers
+- Maintain a clean, stable public API via the package root exports
+  (e.g., from eb_metrics import cwsl, nsl, hr_at_tau, frs)
+
+---
+
+NON-RESPONSIBILITIES (STRICT)
+
+This repository MUST NOT:
+
+- Perform evaluation orchestration, grouping, or DataFrame workflows
+  (belongs in eb-evaluation / higher layers)
+- Perform parameter tuning or search / optimization
+  (belongs in eb-optimization)
+- Encode governance rules, gating, or execution policies
+  (belongs in governance layers; see eb-integration/llm.system.txt)
+- Apply forecast adjustments or implement RAL behavior
+- Define EB contracts or schema validation
+  (belongs in eb-contracts)
+- Introduce I/O, network calls, file system dependencies, or service behavior
+
+---
+
+CORE INVARIANTS
+
+- Metrics are descriptive, not binding.
+  Metric outputs (including FRS, HR@τ, NSL, UD, CWSL and variants) are diagnostic
+  values and must not be framed as decision authorization.
+
+- Calibration defines evaluation context, not decisions.
+  Sensitivity / calibration helpers are deterministic functions that describe
+  how metrics behave under alternative tolerances or cost ratios. They do not
+  mutate forecasts, do not gate workflows, and do not encode policy.
+
+- Pure computation.
+  Metric functions must remain deterministic and side-effect free:
+  - no global state
+  - no hidden randomness
+  - no mutation of caller inputs
+  - no reliance on pandas objects as required inputs
+
+- Input validation is explicit and local.
+  Shape and domain constraints (e.g., non-negativity, matching shapes, valid
+  quantile/tolerance domains, nonzero total weight) must be enforced with clear
+  errors.
+
+---
+
+SYSTEM RELATIONSHIP
+
+- This repository defers to `eb-integration/llm.system.txt` for system-wide
+  pipeline ordering and governance invariants.
+- `eb-metrics` provides primitives consumed by eb-evaluation and eb-optimization,
+  but must not import or depend on those packages.
+
+---
+
+ALLOWED CHANGES
+
+- Adding new metric primitives or variants (with tests)
+- Improving numerical stability, performance, and input validation
+- Adding deterministic calibration/sensitivity utilities that remain metric-layer
+  responsibilities
+- Extending framework wrappers (sklearn/keras) without introducing heavy deps
+
+---
+
+DISALLOWED CHANGES
+
+- Adding workflow orchestration, grouping logic, or DataFrame pipelines
+- Adding optimization loops, learned calibration, or model-aware behavior
+- Embedding governance decisions or thresholds as defaults
+- Adding cross-repo dependencies on eb-evaluation / eb-optimization / electric-barometer
+- Turning metrics into gates or “pass/fail” policies
+
+---
+
+INTERPRETATION RULE
+
+If the change is about metric definitions, mathematical semantics, or deterministic
+calibration context, it belongs here.
+If the change is about workflows, selection, decisions, governance, or adjustment,
+it does not belong here.
