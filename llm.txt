@@ -12,6 +12,10 @@ This repository defines metric behavior and mathematical semantics.
 It does not orchestrate workflows, govern decisions, tune policies, or adjust
 forecasts.
 
+STYLE
+- Inherits ecosystem-wide style and linting rules from
+  eb-integration/tooling/llm.style.txt via shared tooling.
+
 ---
 
 PRIMARY RESPONSIBILITIES
