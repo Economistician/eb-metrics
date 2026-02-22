@@ -17,10 +17,10 @@ It intentionally avoids model training logic, optimization policy, and workflow 
 
 ## Contents
 
-- **Metrics**  
+- **Metrics**
   Core loss, service, and readiness metrics
 
-- **Framework integrations**  
+- **Framework integrations**
   Adapters for using metrics within external ML frameworks
 
 ## API reference
