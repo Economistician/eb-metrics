@@ -66,8 +66,8 @@ y_pred = np.array([22, 25, 29, 36, 37, 45])
 loss = cwsl(
     y_true=y_true,
     y_pred=y_pred,
-    underbuild_cost=2.0,
-    overbuild_cost=1.0,
+    cu=2.0,
+    co=1.0,
 )
 
 print(loss)
