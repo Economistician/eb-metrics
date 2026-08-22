@@ -27,7 +27,12 @@ from collections.abc import Sequence
 import numpy as np
 from numpy.typing import ArrayLike
 
-from .._utils import _broadcast_param, _handle_sample_weight, _to_1d_array
+from .._utils import (
+    _as_finite_scalar,
+    _broadcast_param,
+    _handle_sample_weight,
+    _validated_nonneg_pair,
+)
 from .loss import cwsl
 
 __all__ = ["cwsl_sensitivity", "frs", "hr_at_tau", "nsl", "ud"]
@@ -59,32 +64,25 @@ def nsl(
     where $w_i$ are optional sample weights (default $w_i = 1$).
     Higher values are better, with $\mathrm{NSL} \in [0, 1]$.
     """
-    y_true_arr = _to_1d_array(y_true, "y_true")
-    y_pred_arr = _to_1d_array(y_pred, "y_pred")
-
-    if y_true_arr.shape != y_pred_arr.shape:
-        raise ValueError(
-            "y_true and y_pred must have the same shape; "
-            f"got {y_true_arr.shape} and {y_pred_arr.shape}"
-        )
-
-    if np.any(y_true_arr < 0):
-        raise ValueError("y_true must be non-negative (demand cannot be negative).")
-    if np.any(y_pred_arr < 0):
-        raise ValueError("y_pred must be non-negative (forecast cannot be negative).")
-
+    y_true_arr, y_pred_arr = _validated_nonneg_pair(y_true, y_pred)
     n = y_true_arr.shape[0]
+    hits = y_pred_arr >= y_true_arr
+
+    if sample_weight is None:
+        if n == 0:
+            raise ValueError(
+                "NSL is undefined: total sample_weight is zero. Check your weighting scheme."
+            )
+        return float(np.mean(hits))
+
     w = _handle_sample_weight(sample_weight, n)
-
-    hits = (y_pred_arr >= y_true_arr).astype(float)
-
     total_weight = float(w.sum())
     if total_weight <= 0:
         raise ValueError(
             "NSL is undefined: total sample_weight is zero. Check your weighting scheme."
         )
 
-    return float(np.sum(w * hits) / total_weight)
+    return float(np.dot(w, hits) / total_weight)
 
 
 def ud(
@@ -115,36 +113,32 @@ def ud(
     returns $0.0$. Higher values indicate deeper average shortfall; **lower is
     better**.
     """
-    y_true_arr = _to_1d_array(y_true, "y_true")
-    y_pred_arr = _to_1d_array(y_pred, "y_pred")
-
-    if y_true_arr.shape != y_pred_arr.shape:
-        raise ValueError(
-            "y_true and y_pred must have the same shape; "
-            f"got {y_true_arr.shape} and {y_pred_arr.shape}"
-        )
-
-    if np.any(y_true_arr < 0):
-        raise ValueError("y_true must be non-negative (demand cannot be negative).")
-    if np.any(y_pred_arr < 0):
-        raise ValueError("y_pred must be non-negative (forecast cannot be negative).")
-
+    y_true_arr, y_pred_arr = _validated_nonneg_pair(y_true, y_pred)
     n = y_true_arr.shape[0]
-    w = _handle_sample_weight(sample_weight, n)
+    shortfall = np.maximum(y_true_arr - y_pred_arr, 0.0)
+    mask = y_true_arr > y_pred_arr
 
+    if sample_weight is None:
+        if n == 0:
+            raise ValueError(
+                "UD is undefined: total sample_weight is zero. Check your weighting scheme."
+            )
+        shortfall_weight = float(np.count_nonzero(mask))
+        if shortfall_weight <= 0:
+            return 0.0
+        return float(shortfall.sum() / shortfall_weight)
+
+    w = _handle_sample_weight(sample_weight, n)
     total_weight = float(w.sum())
     if total_weight <= 0:
         raise ValueError(
             "UD is undefined: total sample_weight is zero. Check your weighting scheme."
         )
 
-    shortfall_mask = y_true_arr > y_pred_arr
-    shortfall_weight = float(np.sum(w[shortfall_mask]))
+    shortfall_weight = float(np.dot(w, mask))
     if shortfall_weight <= 0:
         return 0.0
-
-    shortfall = y_true_arr[shortfall_mask] - y_pred_arr[shortfall_mask]
-    return float(np.sum(w[shortfall_mask] * shortfall) / shortfall_weight)
+    return float(np.dot(w, shortfall) / shortfall_weight)
 
 
 def hr_at_tau(
@@ -174,37 +168,41 @@ def hr_at_tau(
     \mathrm{HR@\tau} = \frac{\sum_i w_i \; h_i}{\sum_i w_i}
     $$
     """
-    y_true_arr = _to_1d_array(y_true, "y_true")
-    y_pred_arr = _to_1d_array(y_pred, "y_pred")
-
-    if y_true_arr.shape != y_pred_arr.shape:
-        raise ValueError(
-            "y_true and y_pred must have the same shape; "
-            f"got {y_true_arr.shape} and {y_pred_arr.shape}"
-        )
-
-    if np.any(y_true_arr < 0):
-        raise ValueError("y_true must be non-negative (demand cannot be negative).")
-    if np.any(y_pred_arr < 0):
-        raise ValueError("y_pred must be non-negative (forecast cannot be negative).")
-
+    y_true_arr, y_pred_arr = _validated_nonneg_pair(y_true, y_pred)
     n = y_true_arr.shape[0]
-    w = _handle_sample_weight(sample_weight, n)
-
-    tau_arr = _broadcast_param(tau, (n,), "tau")
-    if np.any(tau_arr < 0):
-        raise ValueError("tau must be non-negative.")
-
     abs_error = np.abs(y_true_arr - y_pred_arr)
-    hits = (abs_error <= tau_arr).astype(float)
+    tau_scalar = _as_finite_scalar(tau, "tau")
 
+    if sample_weight is None and tau_scalar is not None:
+        if tau_scalar < 0:
+            raise ValueError("tau must be non-negative.")
+        if n == 0:
+            raise ValueError(
+                "HR@τ is undefined: total sample_weight is zero. Check your weighting scheme."
+            )
+        return float(np.mean(abs_error <= tau_scalar))
+
+    tau_arr = _broadcast_param(tau, (n,), "tau") if tau_scalar is None else None
+    if tau_scalar is not None and tau_scalar < 0:
+        raise ValueError("tau must be non-negative.")
+    if tau_arr is not None and np.any(tau_arr < 0):
+        raise ValueError("tau must be non-negative.")
+    hits = abs_error <= (tau_scalar if tau_arr is None else tau_arr)
+
+    if sample_weight is None:
+        if n == 0:
+            raise ValueError(
+                "HR@τ is undefined: total sample_weight is zero. Check your weighting scheme."
+            )
+        return float(np.mean(hits))
+
+    w = _handle_sample_weight(sample_weight, n)
     total_weight = float(w.sum())
     if total_weight <= 0:
         raise ValueError(
             "HR@τ is undefined: total sample_weight is zero. Check your weighting scheme."
         )
-
-    return float(np.sum(w * hits) / total_weight)
+    return float(np.dot(w, hits) / total_weight)
 
 
 def cwsl_sensitivity(

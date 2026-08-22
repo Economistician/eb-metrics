@@ -26,9 +26,10 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from .._utils import (
+    _as_finite_scalar,
     _broadcast_param,
     _handle_sample_weight,
-    _to_1d_array,
+    _validated_nonneg_pair,
 )
 
 
@@ -113,55 +114,52 @@ def cwsl(
     ----------
     Electric Barometer Technical Note: Cost-Weighted Service Loss (CWSL).
     """
-    y_true_arr = _to_1d_array(y_true, "y_true")
-    y_pred_arr = _to_1d_array(y_pred, "y_pred")
-
-    if y_true_arr.shape != y_pred_arr.shape:
-        raise ValueError(
-            "y_true and y_pred must have the same shape; "
-            f"got {y_true_arr.shape} and {y_pred_arr.shape}"
-        )
-
-    if np.any(y_true_arr < 0):
-        raise ValueError("y_true must be non-negative (demand cannot be negative).")
-    if np.any(y_pred_arr < 0):
-        raise ValueError("y_pred must be non-negative (forecast cannot be negative).")
-
+    y_true_arr, y_pred_arr = _validated_nonneg_pair(y_true, y_pred)
     n = y_true_arr.shape[0]
 
-    # Broadcast cu and co (allow scalar or 1D array of length n)
-    cu_arr = _broadcast_param(cu, (n,), "cu")
-    co_arr = _broadcast_param(co, (n,), "co")
+    delta = y_true_arr - y_pred_arr
+    shortfall = np.maximum(delta, 0.0)
+    overbuild = shortfall - delta
 
-    if np.any(cu_arr < 0):
+    cu_scalar = _as_finite_scalar(cu, "cu")
+    co_scalar = _as_finite_scalar(co, "co")
+
+    if cu_scalar is not None and cu_scalar < 0:
         raise ValueError("cu must be non-negative.")
-    if np.any(co_arr < 0):
+    if co_scalar is not None and co_scalar < 0:
         raise ValueError("co must be non-negative.")
 
-    # Sample weights
-    w = _handle_sample_weight(sample_weight, n, dtype=float)
+    cu_arr = None if cu_scalar is not None else _broadcast_param(cu, (n,), "cu")
+    co_arr = None if co_scalar is not None else _broadcast_param(co, (n,), "co")
+    if cu_arr is not None and np.any(cu_arr < 0):
+        raise ValueError("cu must be non-negative.")
+    if co_arr is not None and np.any(co_arr < 0):
+        raise ValueError("co must be non-negative.")
 
-    # Shortfall and overbuild components
-    shortfall = np.maximum(0.0, y_true_arr - y_pred_arr)
-    overbuild = np.maximum(0.0, y_pred_arr - y_true_arr)
-
-    # Weighted cost and weighted demand
-    cost = cu_arr * shortfall + co_arr * overbuild
-    weighted_cost = cost * w
-    weighted_demand = y_true_arr * w
-
-    total_cost = float(weighted_cost.sum())
-    total_demand = float(weighted_demand.sum())
+    if sample_weight is None:
+        if cu_scalar is not None and co_scalar is not None:
+            total_cost = float(cu_scalar * shortfall.sum() + co_scalar * overbuild.sum())
+        else:
+            cu_term = cu_scalar if cu_scalar is not None else cu_arr
+            co_term = co_scalar if co_scalar is not None else co_arr
+            total_cost = float(np.sum(cu_term * shortfall + co_term * overbuild))
+        total_demand = float(y_true_arr.sum())
+    else:
+        w = _handle_sample_weight(sample_weight, n, dtype=float)
+        if cu_scalar is not None and co_scalar is not None:
+            total_cost = float(cu_scalar * np.dot(w, shortfall) + co_scalar * np.dot(w, overbuild))
+        else:
+            cu_term = cu_scalar if cu_scalar is not None else cu_arr
+            co_term = co_scalar if co_scalar is not None else co_arr
+            total_cost = float(np.dot(w, cu_term * shortfall + co_term * overbuild))
+        total_demand = float(np.dot(w, y_true_arr))
 
     if total_demand > 0:
         return total_cost / total_demand
 
-    # total_demand == 0
     if total_cost == 0:
-        # No demand and no cost → define CWSL as 0.0
         return 0.0
 
-    # Cost but no demand → undefined metric under this formulation
     raise ValueError(
         "CWSL is undefined: total (weighted) demand is zero while total (weighted) "
         "cost is positive. Check your data slice or weighting scheme."

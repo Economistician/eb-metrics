@@ -24,6 +24,42 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 
+def _as_finite_scalar(param: float | ArrayLike, name: str) -> float | None:
+    """Return ``param`` as a finite Python float when it is 0-d; else ``None``.
+
+    ``None`` means the caller should treat ``param`` as a 1D array and
+    broadcast. A 0-d NaN/inf raises, matching ``_broadcast_param``.
+    """
+    arr = np.asarray(param, dtype=float)
+    if arr.ndim != 0:
+        return None
+    if not np.isfinite(arr):
+        raise ValueError(f"{name} must contain only finite values (no NaN/inf).")
+    return float(arr)
+
+
+def _validated_nonneg_pair(
+    y_true: ArrayLike,
+    y_pred: ArrayLike,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Normalize ``y_true`` / ``y_pred`` to 1D float64 and enforce domain checks."""
+    y_true_arr = _to_1d_array(y_true, "y_true")
+    y_pred_arr = _to_1d_array(y_pred, "y_pred")
+
+    if y_true_arr.shape != y_pred_arr.shape:
+        raise ValueError(
+            "y_true and y_pred must have the same shape; "
+            f"got {y_true_arr.shape} and {y_pred_arr.shape}"
+        )
+
+    if np.any(y_true_arr < 0):
+        raise ValueError("y_true must be non-negative (demand cannot be negative).")
+    if np.any(y_pred_arr < 0):
+        raise ValueError("y_pred must be non-negative (forecast cannot be negative).")
+
+    return y_true_arr, y_pred_arr
+
+
 def _to_1d_array(x: ArrayLike, name: str) -> np.ndarray:
     """
     Convert an input to a 1D NumPy float array with basic validation.
