@@ -227,7 +227,8 @@ def cwsl_sensitivity(
 
     - ``cwsl(y_true, y_pred, cu=R*co, co=co, sample_weight=...)``
 
-    Non-positive R values are ignored. If no positive values remain, raises ValueError.
+    Non-positive R values are ignored. Non-finite values (NaN/inf) raise ValueError.
+    If no positive values remain, raises ValueError.
     """
     results: dict[float, float] = {}
 
@@ -240,6 +241,8 @@ def cwsl_sensitivity(
         if R is None:
             continue
         Rf = float(R)
+        if not np.isfinite(Rf):
+            raise ValueError("R_list must contain only finite values (no NaN/inf).")
         if Rf <= 0:
             continue
 

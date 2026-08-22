@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from eb_metrics.metrics.service import (
+    cwsl_sensitivity,
     frs,
     hr_at_tau,
     nsl,
@@ -264,6 +265,18 @@ def test_frs_clips_scaled_cwsl_at_one():
 
     value = frs(y_true=y_true, y_pred=y_pred, cu=cu, co=co, cwsl_max=0.2)
     assert np.isclose(value, -0.5)
+
+
+@pytest.mark.parametrize("bad_R", [float("nan"), float("inf"), float("-inf")])
+def test_cwsl_sensitivity_rejects_nonfinite_R(bad_R: float):
+    """NaN and inf in R_list are invalid grid points, not silently skipped."""
+    with pytest.raises(ValueError, match="finite"):
+        cwsl_sensitivity(
+            y_true=[10.0, 20.0],
+            y_pred=[9.0, 21.0],
+            R_list=[1.0, bad_R],
+            co=1.0,
+        )
 
 
 @pytest.mark.parametrize("cwsl_max", [0.0, -0.3])
