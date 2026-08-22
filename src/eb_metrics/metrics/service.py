@@ -257,21 +257,40 @@ def frs(
     y_pred: ArrayLike,
     cu: float | ArrayLike,
     co: float | ArrayLike,
+    *,
+    cwsl_max: float,
     sample_weight: ArrayLike | None = None,
 ) -> float:
     r"""
     Compute Forecast Readiness Score (FRS).
 
-    FRS is a simple composite score defined as:
+    Because NSL lies in $[0, 1]$ but raw CWSL may exceed 1, CWSL is first
+    scaled to the unit interval using a required application-specific bound
+    $\mathrm{CWSL}_{\max} > 0$ (the largest economically meaningful CWSL):
 
     $$
-    \mathrm{FRS} = \mathrm{NSL} - \mathrm{CWSL}
+    \mathrm{CWSL}_{\mathrm{scaled}}
+        = \min\!\left(1, \frac{\mathrm{CWSL}}{\mathrm{CWSL}_{\max}}\right)
     $$
+
+    The composite readiness score is then:
+
+    $$
+    \mathrm{FRS} = \mathrm{NSL} - \mathrm{CWSL}_{\mathrm{scaled}}
+    $$
+
+    so that $\mathrm{FRS} \in [-1, 1]$. FRS is an evaluative readiness signal,
+    not a training loss.
 
     where:
     - NSL measures the frequency of avoiding shortfall (higher is better)
     - CWSL measures asymmetric, demand-normalized cost (lower is better)
+    - $\mathrm{CWSL}_{\max}$ is a required, user-chosen bound with no default
     """
+    cwsl_max_val = float(cwsl_max)
+    if not np.isfinite(cwsl_max_val) or cwsl_max_val <= 0.0:
+        raise ValueError("cwsl_max must be finite and strictly greater than 0.")
+
     nsl_val = nsl(y_true=y_true, y_pred=y_pred, sample_weight=sample_weight)
     cwsl_val = cwsl(
         y_true=y_true,
@@ -280,4 +299,5 @@ def frs(
         co=co,
         sample_weight=sample_weight,
     )
-    return float(nsl_val - cwsl_val)
+    cwsl_scaled = min(1.0, cwsl_val / cwsl_max_val)
+    return float(nsl_val - cwsl_scaled)

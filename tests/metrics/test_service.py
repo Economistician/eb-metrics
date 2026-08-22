@@ -193,9 +193,14 @@ def test_hr_at_tau_zero_total_weight_raises():
 # ----------------------------------------------------------------------
 # FRS (Forecast Readiness Score)
 # ----------------------------------------------------------------------
-def test_frs_basic_consistency():
+def _frs_example_inputs() -> tuple[list[int], list[int], float, float]:
+    """Shared hand-checkable FRS example: NSL = 0.5, CWSL = 1/3."""
+    return [10, 20], [10, 15], 2.0, 1.0
+
+
+def test_frs_scales_cwsl_by_cwsl_max():
     """
-    Basic FRS example using NSL and CWSL.
+    FRS scales CWSL by a required CWSL_max bound.
 
     y_true = [10, 20]
     y_pred = [10, 15]
@@ -211,12 +216,35 @@ def test_frs_basic_consistency():
         demand    = 10 + 20 = 30
         CWSL      = 10 / 30 = 1/3
 
-    FRS = NSL - CWSL = 0.5 - 1/3 = 1/6
+    CWSL_max = 0.5
+    CWSL_scaled = min(1, (1/3) / 0.5) = 2/3
+    FRS = NSL - CWSL_scaled = 0.5 - 2/3 = -1/6
     """
-    y_true = [10, 20]
-    y_pred = [10, 15]
-    cu = 2.0
-    co = 1.0
+    y_true, y_pred, cu, co = _frs_example_inputs()
 
-    value = frs(y_true=y_true, y_pred=y_pred, cu=cu, co=co)
-    assert np.isclose(value, 1.0 / 6.0)
+    value = frs(y_true=y_true, y_pred=y_pred, cu=cu, co=co, cwsl_max=0.5)
+    assert np.isclose(value, -1.0 / 6.0)
+
+
+def test_frs_clips_scaled_cwsl_at_one():
+    """
+    If CWSL / CWSL_max exceeds 1, the scaled term is clipped at 1.
+
+    Using the shared example (NSL = 0.5, CWSL = 1/3) with CWSL_max = 0.2:
+
+    CWSL_scaled = min(1, (1/3) / 0.2) = 1
+    FRS = 0.5 - 1 = -0.5
+    """
+    y_true, y_pred, cu, co = _frs_example_inputs()
+
+    value = frs(y_true=y_true, y_pred=y_pred, cu=cu, co=co, cwsl_max=0.2)
+    assert np.isclose(value, -0.5)
+
+
+@pytest.mark.parametrize("cwsl_max", [0.0, -0.3])
+def test_frs_rejects_nonpositive_cwsl_max(cwsl_max: float):
+    """cwsl_max must be finite and strictly greater than 0."""
+    y_true, y_pred, cu, co = _frs_example_inputs()
+
+    with pytest.raises(ValueError):
+        frs(y_true=y_true, y_pred=y_pred, cu=cu, co=co, cwsl_max=cwsl_max)
