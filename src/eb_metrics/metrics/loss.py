@@ -226,8 +226,8 @@ def piecewise_state_asymmetric_squared_error(
     bounds = np.asarray(profile.state_upper_bounds, dtype=float)
     weights = np.asarray(profile.state_weights, dtype=float)
 
-    # Band index by upper bounds. See docstring for band semantics.
-    band_idx = np.searchsorted(bounds, y, side="right")
+    # Closed-on-right bands: y == bound stays in that band (see docstring).
+    band_idx = np.searchsorted(bounds, y, side="left")
 
     # Clamp to valid range: [0, len(weights) - 1]
     band_idx = np.clip(band_idx, 0, len(weights) - 1)

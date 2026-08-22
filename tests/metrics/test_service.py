@@ -76,7 +76,7 @@ def test_nsl_zero_total_weight_raises():
 # ----------------------------------------------------------------------
 def test_ud_basic_unweighted():
     """
-    Simple UD example.
+    Conditional UD over shortfall intervals only.
 
     y_true = [10, 20, 30]
     y_pred = [9, 25, 25]
@@ -84,36 +84,61 @@ def test_ud_basic_unweighted():
     shortfalls = max(0, y - ŷ):
         [1, 0, 5]
 
-    UD = mean([1, 0, 5]) = 2.0
+    T^SF = {0, 2} with depths [1, 5]
+    UD = (1 + 5) / 2 = 3.0
     """
     y_true = [10, 20, 30]
     y_pred = [9, 25, 25]
 
     value = ud(y_true=y_true, y_pred=y_pred)
-    assert np.isclose(value, 2.0)
+    assert np.isclose(value, 3.0)
+
+
+def test_ud_technical_note_twelve_interval_example():
+    """
+    Worked example from the Underbuild Depth technical note.
+
+    Shortfalls in intervals 2, 3, 5, 7, and 9 with depths 3, 3, 3, 4, 4.
+    UD = (3 + 3 + 3 + 4 + 4) / 5 = 17 / 5 = 3.4
+    """
+    y_true = [20, 28, 32, 35, 40, 42, 38, 30, 26, 24, 22, 18]
+    y_pred = [22, 25, 29, 36, 37, 45, 34, 31, 22, 27, 23, 19]
+
+    value = ud(y_true=y_true, y_pred=y_pred)
+    assert np.isclose(value, 17.0 / 5.0)
 
 
 def test_ud_with_weights():
     """
-    Weighted UD example.
+    Weighted UD, still conditional on shortfall intervals.
 
     y_true = [10, 20, 30]
     y_pred = [9, 25, 25]
     w      = [1, 1, 2]
 
     shortfalls = [1, 0, 5]
+    T^SF weights = [1, 2]
 
-    weighted_shortfall = [1*1, 1*0, 2*5] = [1, 0, 10] → sum = 11
-    total_weight = 1 + 1 + 2 = 4
+    weighted_shortfall = 1*1 + 2*5 = 11
+    shortfall_weight   = 1 + 2 = 3
 
-    UD_w = 11 / 4 = 2.75
+    UD_w = 11 / 3
     """
     y_true = [10, 20, 30]
     y_pred = [9, 25, 25]
     w = [1.0, 1.0, 2.0]
 
     value = ud(y_true=y_true, y_pred=y_pred, sample_weight=w)
-    assert np.isclose(value, 2.75)
+    assert np.isclose(value, 11.0 / 3.0)
+
+
+def test_ud_no_shortfalls_returns_zero():
+    """If every interval meets or exceeds demand, UD is 0.0."""
+    y_true = [10, 20, 30]
+    y_pred = [10, 25, 31]
+
+    value = ud(y_true=y_true, y_pred=y_pred)
+    assert np.isclose(value, 0.0)
 
 
 def test_ud_zero_total_weight_raises():

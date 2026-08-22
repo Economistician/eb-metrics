@@ -95,9 +95,9 @@ def ud(
     r"""
     Compute Underbuild Depth (UD).
 
-    UD measures the (optionally weighted) *average magnitude* of shortfall.
-    Unlike NSL (which counts shortfalls), UD quantifies **how severe** shortfalls
-    are when they occur.
+    UD is a *conditional* severity metric: it averages shortfall magnitude
+    only over shortfall intervals $T^{SF} = \{ i : y_i > \hat{y}_i \}$.
+    Intervals with no shortfall do not enter the denominator.
 
     Define per-interval shortfall:
 
@@ -108,10 +108,12 @@ def ud(
     Then:
 
     $$
-    \mathrm{UD} = \frac{\sum_i w_i \; s_i}{\sum_i w_i}
+    \mathrm{UD} = \frac{\sum_{i \in T^{SF}} w_i \; s_i}{\sum_{i \in T^{SF}} w_i}
     $$
 
-    Higher values indicate deeper average shortfall; **lower is better**.
+    If no shortfalls occur (total shortfall weight is zero), this implementation
+    returns $0.0$. Higher values indicate deeper average shortfall; **lower is
+    better**.
     """
     y_true_arr = _to_1d_array(y_true, "y_true")
     y_pred_arr = _to_1d_array(y_pred, "y_pred")
@@ -130,15 +132,19 @@ def ud(
     n = y_true_arr.shape[0]
     w = _handle_sample_weight(sample_weight, n)
 
-    shortfall = np.maximum(0.0, y_true_arr - y_pred_arr)
-
     total_weight = float(w.sum())
     if total_weight <= 0:
         raise ValueError(
             "UD is undefined: total sample_weight is zero. Check your weighting scheme."
         )
 
-    return float(np.sum(w * shortfall) / total_weight)
+    shortfall_mask = y_true_arr > y_pred_arr
+    shortfall_weight = float(np.sum(w[shortfall_mask]))
+    if shortfall_weight <= 0:
+        return 0.0
+
+    shortfall = y_true_arr[shortfall_mask] - y_pred_arr[shortfall_mask]
+    return float(np.sum(w[shortfall_mask] * shortfall) / shortfall_weight)
 
 
 def hr_at_tau(

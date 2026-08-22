@@ -148,3 +148,36 @@ def test_piecewise_state_asymmetric_squared_error_applies_state_weights_and_unde
     )
 
     assert np.allclose(costs, expected)
+
+
+def test_piecewise_state_asymmetric_squared_error_assigns_exact_upper_bounds_to_closed_right_band():
+    """
+    Exact upper bounds stay in the closed-on-right band:
+
+        y_true <= 0.75              -> weight 1.0
+        0.75 < y_true <= 0.85       -> weight 2.0
+        0.85 < y_true <= 1.01       -> weight 5.0
+
+    Using over-forecasts of +0.1 so |err|^2 = 0.01 and over_mult = 1.0.
+    """
+    profile = PiecewiseStateAsymmetry(
+        state_upper_bounds=(0.75, 0.85, 1.01),
+        state_weights=(1.0, 2.0, 5.0),
+        under_mult=3.0,
+        over_mult=1.0,
+    )
+
+    y_true = np.array([0.75, 0.85, 1.01])
+    y_pred = y_true + 0.1
+
+    costs = piecewise_state_asymmetric_squared_error(y_true=y_true, y_pred=y_pred, profile=profile)
+
+    expected = np.array(
+        [
+            1.0 * 1.0 * 0.01,
+            2.0 * 1.0 * 0.01,
+            5.0 * 1.0 * 0.01,
+        ]
+    )
+
+    assert np.allclose(costs, expected)
