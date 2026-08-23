@@ -7,13 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.8] - 2026-08-23
+
 ### Changed
 
 - Tightened README Overview; removed cloned Role section.
 - Applied repo-wide Ruff formatting and optional-import typing guards so `python tooling/check.py` passes cleanly.
 - Changelog version header now matches `pyproject.toml` (`0.2.8`).
-
-## [0.2.8] - 2026-08-22
+- Development Status classifier is `4 - Beta`.
 
 ### Added
 
