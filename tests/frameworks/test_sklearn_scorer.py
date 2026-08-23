@@ -23,7 +23,7 @@ def test_cwsl_loss_matches_core_metric():
 
 
 def test_cwsl_scorer_returns_negative_loss_and_respects_sample_weight():
-    from sklearn.dummy import DummyRegressor
+    from sklearn.dummy import DummyRegressor  # type: ignore[reportMissingImports]
 
     X = np.arange(6).reshape(-1, 1)
     y = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
@@ -49,8 +49,8 @@ def test_cwsl_scorer_returns_negative_loss_and_respects_sample_weight():
 
 
 def test_cwsl_scorer_works_in_grid_search():
-    from sklearn.dummy import DummyRegressor
-    from sklearn.model_selection import GridSearchCV
+    from sklearn.dummy import DummyRegressor  # type: ignore[reportMissingImports]
+    from sklearn.model_selection import GridSearchCV  # type: ignore[reportMissingImports]
 
     # Simple setup where predicting the true constant is clearly best.
     X = np.arange(20).reshape(-1, 1)

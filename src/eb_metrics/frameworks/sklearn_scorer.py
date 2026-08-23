@@ -142,7 +142,7 @@ def cwsl_scorer(cu: float, co: float) -> Callable:
     if co <= 0.0:
         raise ValueError("co must be strictly positive.")
 
-    from sklearn.metrics import make_scorer
+    from sklearn.metrics import make_scorer  # type: ignore[reportMissingImports]
 
     def _loss(
         y_true: ArrayLike,

@@ -99,7 +99,7 @@ def make_cwsl_keras_loss(cu: float, co: float) -> Callable:
         raise ValueError("co must be strictly positive.")
 
     try:
-        import tensorflow as tf  # type: ignore[import]
+        import tensorflow as tf  # type: ignore[reportMissingImports]
     except ImportError as e:  # pragma: no cover - optional dependency path
         raise ImportError(
             "TensorFlow is required to use make_cwsl_keras_loss. "

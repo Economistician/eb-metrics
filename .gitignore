@@ -69,6 +69,7 @@ dmypy.json
 .pytype/
 .pyre/
 .ruff_cache/
+.pre-commit-home/
 
 ######################################
 # Documentation

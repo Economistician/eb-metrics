@@ -348,9 +348,7 @@ def test_near_zero_demand_with_unit_overbuild_is_large_but_finite():
     y_pred = np.array([1.0])
     value = _assert_py_float(cwsl(y_true, y_pred, cu=2.0, co=1.0), name="cwsl")
     assert value > 1e11
-    frs_val = _assert_py_float(
-        frs(y_true, y_pred, cu=2.0, co=1.0, cwsl_max=CWSL_MAX), name="frs"
-    )
+    frs_val = _assert_py_float(frs(y_true, y_pred, cu=2.0, co=1.0, cwsl_max=CWSL_MAX), name="frs")
     # NSL = 1 (overbuild covers demand); CWSL clips to 1 → FRS = 0.
     assert np.isclose(nsl(y_true, y_pred), 1.0)
     assert np.isclose(frs_val, 0.0)
@@ -398,9 +396,7 @@ def test_frs_bounds_hold_under_extreme_cost_ratios():
         y_pred = _random_positive_series(rng, 5)
         cu = float(rng.choice([1e-3, 1.0, 50.0, 1e3]))
         co = float(rng.choice([1e-3, 1.0, 50.0, 1e3]))
-        value = _assert_py_float(
-            frs(y_true, y_pred, cu=cu, co=co, cwsl_max=CWSL_MAX), name="frs"
-        )
+        value = _assert_py_float(frs(y_true, y_pred, cu=cu, co=co, cwsl_max=CWSL_MAX), name="frs")
         assert -1.0 <= value <= 1.0
 
 
@@ -421,15 +417,11 @@ def test_random_shortfall_and_overbuild_cu_co_partial_derivatives_match_definiti
         dcu, dco = 0.37, 0.41
 
         if shortfall.sum() > 0:
-            delta = cwsl(y_true, y_pred, cu=cu + dcu, co=co) - cwsl(
-                y_true, y_pred, cu=cu, co=co
-            )
+            delta = cwsl(y_true, y_pred, cu=cu + dcu, co=co) - cwsl(y_true, y_pred, cu=cu, co=co)
             expected = dcu * float(shortfall.sum()) / demand
             assert np.isclose(delta, expected, rtol=1e-10, atol=1e-12)
 
         if overbuild.sum() > 0:
-            delta = cwsl(y_true, y_pred, cu=cu, co=co + dco) - cwsl(
-                y_true, y_pred, cu=cu, co=co
-            )
+            delta = cwsl(y_true, y_pred, cu=cu, co=co + dco) - cwsl(y_true, y_pred, cu=cu, co=co)
             expected = dco * float(overbuild.sum()) / demand
             assert np.isclose(delta, expected, rtol=1e-10, atol=1e-12)
