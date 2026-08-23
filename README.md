@@ -36,7 +36,7 @@ By separating metric semantics from evaluation logic and execution concerns, `eb
 pip install eb-metrics
 ```
 
-The package supports Python 3.10 and later.
+The package supports Python 3.11 and later.
 
 ---
 
@@ -78,4 +78,4 @@ print(loss)
 ## License
 
 BSD 3-Clause License.
-© 2025 Kyle Corrie.
+© 2026 Kyle Corrie.

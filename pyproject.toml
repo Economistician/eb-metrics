@@ -6,7 +6,7 @@ name = "eb-metrics"
 version = "0.2.8"
 description = "Core Electric Barometer error metrics, including asymmetric CWSL and standard forecast loss functions."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "BSD-3-Clause"
 
 authors = [
@@ -16,11 +16,10 @@ authors = [
 keywords = ["forecasting", "metrics", "evaluation", "time-series", "operations-research"]
 
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
   "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
