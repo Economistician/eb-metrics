@@ -81,7 +81,10 @@ def _to_1d_array(x: ArrayLike, name: str) -> np.ndarray:
     ValueError
         If ``x`` is not 1-dimensional or contains non-finite values.
     """
-    arr = np.asarray(x, dtype=float)
+    if isinstance(x, np.ndarray) and x.dtype == np.float64 and x.ndim == 1 and x.flags.c_contiguous:
+        arr = x
+    else:
+        arr = np.asarray(x, dtype=float)
 
     if arr.ndim != 1:
         raise ValueError(f"{name} must be a 1D array; got ndim={arr.ndim} and shape={arr.shape}")

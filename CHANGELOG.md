@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Performance
 
 - Public NSL, UD, HR@τ, and CWSL wrappers share internal validated-array kernels so callers can reuse a single `_validated_nonneg_pair` result.
+- `_to_1d_array` returns a 1D C-contiguous `float64` ndarray as a view (no `asarray` copy) and still rejects non-finite values.
 
 ## [0.2.8] - 2026-08-23
 
