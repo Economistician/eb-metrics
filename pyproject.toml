@@ -16,7 +16,7 @@ authors = [
 keywords = ["forecasting", "metrics", "evaluation", "time-series", "operations-research"]
 
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Science/Research",
   "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
