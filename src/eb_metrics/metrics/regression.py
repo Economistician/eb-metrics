@@ -32,10 +32,17 @@ __all__ = [
 # ----------------------------------------------------------------------
 # Internal utilities
 # ----------------------------------------------------------------------
+def _as_float_array(x: ArrayLike) -> np.ndarray:
+    """Return a float array, skipping ``asarray`` for C-contiguous float64."""
+    if isinstance(x, np.ndarray) and x.dtype == np.float64 and x.flags.c_contiguous:
+        return x
+    return np.asarray(x, dtype=float)
+
+
 def _validate_shapes(y_true: ArrayLike, y_pred: ArrayLike) -> tuple[np.ndarray, np.ndarray]:
     """Convert inputs to float arrays and require identical shapes."""
-    y_true_arr = np.asarray(y_true, dtype=float)
-    y_pred_arr = np.asarray(y_pred, dtype=float)
+    y_true_arr = _as_float_array(y_true)
+    y_pred_arr = _as_float_array(y_pred)
 
     if y_true_arr.shape != y_pred_arr.shape:
         raise ValueError(
@@ -43,6 +50,10 @@ def _validate_shapes(y_true: ArrayLike, y_pred: ArrayLike) -> tuple[np.ndarray, 
             f"got {y_true_arr.shape} and {y_pred_arr.shape}"
         )
     return y_true_arr, y_pred_arr
+
+
+def _mse_from_validated(y_true_arr: np.ndarray, y_pred_arr: np.ndarray) -> float:
+    return float(np.mean((y_true_arr - y_pred_arr) ** 2))
 
 
 # ----------------------------------------------------------------------
@@ -83,7 +94,7 @@ def mse(y_true: ArrayLike, y_pred: ArrayLike) -> float:
         Mean squared error. Lower is better.
     """
     y_true_arr, y_pred_arr = _validate_shapes(y_true, y_pred)
-    return float(np.mean((y_true_arr - y_pred_arr) ** 2))
+    return _mse_from_validated(y_true_arr, y_pred_arr)
 
 
 def rmse(y_true: ArrayLike, y_pred: ArrayLike) -> float:
@@ -101,7 +112,8 @@ def rmse(y_true: ArrayLike, y_pred: ArrayLike) -> float:
     float
         Root mean squared error. Lower is better.
     """
-    return float(np.sqrt(mse(y_true, y_pred)))
+    y_true_arr, y_pred_arr = _validate_shapes(y_true, y_pred)
+    return float(np.sqrt(_mse_from_validated(y_true_arr, y_pred_arr)))
 
 
 def mape(y_true: ArrayLike, y_pred: ArrayLike) -> float:
@@ -336,10 +348,10 @@ def mase(y_true: ArrayLike, y_pred: ArrayLike, y_naive: ArrayLike) -> float:
     magnitudes, assuming the naive baseline is meaningful.
     """
     y_true_arr, y_pred_arr = _validate_shapes(y_true, y_pred)
-    y_true_arr2, y_naive_arr = _validate_shapes(y_true, y_naive)
+    _, y_naive_arr = _validate_shapes(y_true_arr, y_naive)
 
     mae_model = np.mean(np.abs(y_true_arr - y_pred_arr))
-    mae_naive = np.mean(np.abs(y_true_arr2 - y_naive_arr))
+    mae_naive = np.mean(np.abs(y_true_arr - y_naive_arr))
 
     if mae_naive == 0:
         raise ValueError("MASE undefined because naive MAE is zero.")
