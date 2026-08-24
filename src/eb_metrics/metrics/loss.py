@@ -115,6 +115,16 @@ def cwsl(
     Electric Barometer Technical Note: Cost-Weighted Service Loss (CWSL).
     """
     y_true_arr, y_pred_arr = _validated_nonneg_pair(y_true, y_pred)
+    return _cwsl_from_validated(y_true_arr, y_pred_arr, cu, co, sample_weight)
+
+
+def _cwsl_from_validated(
+    y_true_arr: np.ndarray,
+    y_pred_arr: np.ndarray,
+    cu: float | ArrayLike,
+    co: float | ArrayLike,
+    sample_weight: ArrayLike | None = None,
+) -> float:
     n = y_true_arr.shape[0]
 
     delta = y_true_arr - y_pred_arr

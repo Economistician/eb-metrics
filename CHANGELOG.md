@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Performance
+
+- Public NSL, UD, HR@τ, and CWSL wrappers share internal validated-array kernels so callers can reuse a single `_validated_nonneg_pair` result.
+
 ## [0.2.8] - 2026-08-23
 
 ### Changed

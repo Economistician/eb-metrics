@@ -65,6 +65,14 @@ def nsl(
     Higher values are better, with $\mathrm{NSL} \in [0, 1]$.
     """
     y_true_arr, y_pred_arr = _validated_nonneg_pair(y_true, y_pred)
+    return _nsl_from_validated(y_true_arr, y_pred_arr, sample_weight)
+
+
+def _nsl_from_validated(
+    y_true_arr: np.ndarray,
+    y_pred_arr: np.ndarray,
+    sample_weight: ArrayLike | None = None,
+) -> float:
     n = y_true_arr.shape[0]
     hits = y_pred_arr >= y_true_arr
 
@@ -114,6 +122,14 @@ def ud(
     better**.
     """
     y_true_arr, y_pred_arr = _validated_nonneg_pair(y_true, y_pred)
+    return _ud_from_validated(y_true_arr, y_pred_arr, sample_weight)
+
+
+def _ud_from_validated(
+    y_true_arr: np.ndarray,
+    y_pred_arr: np.ndarray,
+    sample_weight: ArrayLike | None = None,
+) -> float:
     n = y_true_arr.shape[0]
     shortfall = np.maximum(y_true_arr - y_pred_arr, 0.0)
     mask = y_true_arr > y_pred_arr
@@ -169,6 +185,15 @@ def hr_at_tau(
     $$
     """
     y_true_arr, y_pred_arr = _validated_nonneg_pair(y_true, y_pred)
+    return _hr_at_tau_from_validated(y_true_arr, y_pred_arr, tau, sample_weight)
+
+
+def _hr_at_tau_from_validated(
+    y_true_arr: np.ndarray,
+    y_pred_arr: np.ndarray,
+    tau: float | ArrayLike,
+    sample_weight: ArrayLike | None = None,
+) -> float:
     n = y_true_arr.shape[0]
     abs_error = np.abs(y_true_arr - y_pred_arr)
     tau_scalar = _as_finite_scalar(tau, "tau")
