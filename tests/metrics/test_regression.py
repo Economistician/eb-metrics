@@ -106,3 +106,49 @@ def test_mase_raises_on_zero_naive_mae():
 def test_shape_mismatch_raises():
     with pytest.raises(ValueError):
         mae([1, 2], [1])
+
+
+# ----------------------------------------------------------------------
+# Domain validation (aligned with service kernels)
+# ----------------------------------------------------------------------
+_CLASSICAL_PAIR = (mae, mse, rmse, mape, wmape, medae, smape, msle)
+
+
+@pytest.mark.parametrize("fn", _CLASSICAL_PAIR)
+def test_classical_rejects_nonfinite(fn):
+    with pytest.raises(ValueError, match="finite"):
+        fn([1.0, float("nan")], [1.0, 1.0])
+    with pytest.raises(ValueError, match="finite"):
+        fn([1.0, float("inf")], [1.0, 1.0])
+
+
+@pytest.mark.parametrize("fn", _CLASSICAL_PAIR)
+def test_classical_rejects_empty(fn):
+    with pytest.raises(ValueError, match="non-empty"):
+        fn([], [])
+
+
+@pytest.mark.parametrize("fn", _CLASSICAL_PAIR)
+def test_classical_rejects_2d(fn):
+    with pytest.raises(ValueError, match="1D"):
+        fn(np.array([[1.0, 2.0]]), np.array([[1.0, 2.0]]))
+
+
+def test_mape_all_zero_raises():
+    with pytest.raises(ValueError, match="MAPE undefined"):
+        mape([0, 0], [1, 1])
+
+
+def test_wmape_all_zero_raises():
+    with pytest.raises(ValueError, match="WMAPE undefined"):
+        wmape([0, 0], [1, 1])
+
+
+def test_mase_rejects_nonfinite_naive():
+    with pytest.raises(ValueError, match="finite"):
+        mase([1.0, 2.0], [1.0, 2.0], [1.0, float("nan")])
+
+
+def test_mase_rejects_empty():
+    with pytest.raises(ValueError, match="non-empty"):
+        mase([], [], [])

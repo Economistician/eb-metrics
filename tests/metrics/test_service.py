@@ -72,6 +72,16 @@ def test_nsl_zero_total_weight_raises():
         nsl(y_true=y_true, y_pred=y_pred, sample_weight=w)
 
 
+def test_nsl_rejects_empty():
+    with pytest.raises(ValueError, match="non-empty"):
+        nsl([], [])
+
+
+def test_nsl_rejects_nonfinite():
+    with pytest.raises(ValueError, match="finite"):
+        nsl([1.0, float("nan")], [1.0, 1.0])
+
+
 # ----------------------------------------------------------------------
 # UD (Underbuild Depth)
 # ----------------------------------------------------------------------

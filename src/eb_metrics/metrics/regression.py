@@ -15,6 +15,8 @@ from __future__ import annotations
 import numpy as np
 from numpy.typing import ArrayLike
 
+from .._utils import _validate_shapes
+
 __all__ = [
     "mae",
     "mape",
@@ -27,29 +29,6 @@ __all__ = [
     "smape",
     "wmape",
 ]
-
-
-# ----------------------------------------------------------------------
-# Internal utilities
-# ----------------------------------------------------------------------
-def _as_float_array(x: ArrayLike) -> np.ndarray:
-    """Return a float array, skipping ``asarray`` for C-contiguous float64."""
-    if isinstance(x, np.ndarray) and x.dtype == np.float64 and x.flags.c_contiguous:
-        return x
-    return np.asarray(x, dtype=float)
-
-
-def _validate_shapes(y_true: ArrayLike, y_pred: ArrayLike) -> tuple[np.ndarray, np.ndarray]:
-    """Convert inputs to float arrays and require identical shapes."""
-    y_true_arr = _as_float_array(y_true)
-    y_pred_arr = _as_float_array(y_pred)
-
-    if y_true_arr.shape != y_pred_arr.shape:
-        raise ValueError(
-            "y_true and y_pred must have identical shapes; "
-            f"got {y_true_arr.shape} and {y_pred_arr.shape}"
-        )
-    return y_true_arr, y_pred_arr
 
 
 def _mse_from_validated(y_true_arr: np.ndarray, y_pred_arr: np.ndarray) -> float:

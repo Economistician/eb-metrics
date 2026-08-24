@@ -111,6 +111,16 @@ def test_cwsl_zero_demand_positive_cost_raises():
         cwsl(y_true=y_true, y_pred=y_pred, cu=2.0, co=1.0)
 
 
+def test_cwsl_rejects_empty():
+    with pytest.raises(ValueError, match="non-empty"):
+        cwsl([], [], cu=1.0, co=1.0)
+
+
+def test_cwsl_rejects_nonfinite():
+    with pytest.raises(ValueError, match="finite"):
+        cwsl([1.0, float("nan")], [1.0, 1.0], cu=1.0, co=1.0)
+
+
 def test_piecewise_state_asymmetric_squared_error_applies_state_weights_and_under_asymmetry():
     """
     Verify that:

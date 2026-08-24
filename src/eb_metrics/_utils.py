@@ -42,7 +42,7 @@ def _validated_nonneg_pair(
     y_true: ArrayLike,
     y_pred: ArrayLike,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Normalize ``y_true`` / ``y_pred`` to 1D float64 and enforce domain checks."""
+    """Normalize ``y_true`` / ``y_pred`` to 1D finite non-empty float64 and enforce non-negativity."""
     y_true_arr = _to_1d_array(y_true, "y_true")
     y_pred_arr = _to_1d_array(y_pred, "y_pred")
 
@@ -79,7 +79,7 @@ def _to_1d_array(x: ArrayLike, name: str) -> np.ndarray:
     Raises
     ------
     ValueError
-        If ``x`` is not 1-dimensional or contains non-finite values.
+        If ``x`` is not 1-dimensional, is empty, or contains non-finite values.
     """
     if isinstance(x, np.ndarray) and x.dtype == np.float64 and x.ndim == 1 and x.flags.c_contiguous:
         arr = x
@@ -89,10 +89,26 @@ def _to_1d_array(x: ArrayLike, name: str) -> np.ndarray:
     if arr.ndim != 1:
         raise ValueError(f"{name} must be a 1D array; got ndim={arr.ndim} and shape={arr.shape}")
 
+    if arr.size == 0:
+        raise ValueError(f"{name} must be a non-empty 1D array.")
+
     if not np.all(np.isfinite(arr)):
         raise ValueError(f"{name} must contain only finite values (no NaN/inf).")
 
     return arr
+
+
+def _validate_shapes(y_true: ArrayLike, y_pred: ArrayLike) -> tuple[np.ndarray, np.ndarray]:
+    """Convert inputs to 1D finite non-empty float arrays with identical shapes."""
+    y_true_arr = _to_1d_array(y_true, "y_true")
+    y_pred_arr = _to_1d_array(y_pred, "y_pred")
+
+    if y_true_arr.shape != y_pred_arr.shape:
+        raise ValueError(
+            "y_true and y_pred must have identical shapes; "
+            f"got {y_true_arr.shape} and {y_pred_arr.shape}"
+        )
+    return y_true_arr, y_pred_arr
 
 
 def _broadcast_param(param: float | ArrayLike, shape: tuple[int, ...], name: str) -> np.ndarray:
