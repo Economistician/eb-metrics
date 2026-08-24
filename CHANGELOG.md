@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.9] - 2026-08-24
+
 ### Changed
 
 - Classical regression metrics (`rmse`, `mape`, `wmape`, `mase`, and the shared `_validate_shapes` helper) reject non-1D, empty, and non-finite inputs with explicit `ValueError`s, matching service-kernel domain checks. Valid finite 1D series are unchanged.
